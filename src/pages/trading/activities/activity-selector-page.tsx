@@ -218,6 +218,8 @@ export default function ActivitySelectorPage() {
                     </SelectItem>
                     <SelectItem value="BUY">{t("activitySelector.types.buy")}</SelectItem>
                     <SelectItem value="SELL">{t("activitySelector.types.sell")}</SelectItem>
+                    <SelectItem value="ADD_HOLDING">Add Holding</SelectItem>
+                    <SelectItem value="DIVIDEND">Dividend</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

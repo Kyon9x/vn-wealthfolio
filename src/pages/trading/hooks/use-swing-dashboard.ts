@@ -83,6 +83,13 @@ export function useSwingDashboard(period: PeriodType) {
       // Filter activities based on preferences
       const selectedActivities = filterSelectedActivities(activities, preferences);
 
+      // DEBUG
+      console.log('[SwingDashboard] Total activities:', activities.length);
+      console.log('[SwingDashboard] Selected IDs count:', preferences.selectedActivityIds.length);
+      console.log('[SwingDashboard] Filtered activities:', selectedActivities.length);
+      console.log('[SwingDashboard] Activity types:', selectedActivities.map(a => a.activityType));
+      console.log('[SwingDashboard] Symbols:', [...new Set(selectedActivities.map(a => a.assetSymbol))]);
+
       // Match trades using all selected activities (no date filtering here)
       const tradeMatcher = new TradeMatcher({
         lotMethod: preferences.lotMatchingMethod,
@@ -91,6 +98,11 @@ export function useSwingDashboard(period: PeriodType) {
       });
 
       const { closedTrades, openPositions } = tradeMatcher.matchTrades(selectedActivities);
+
+      // DEBUG
+      console.log('[SwingDashboard] Closed trades:', closedTrades.length);
+      console.log('[SwingDashboard] Open positions:', openPositions.length);
+      console.log('[SwingDashboard] Open positions data:', openPositions);
 
       // Set up currency conversion - use base currency instead of preference to avoid unnecessary conversion
       const reportingCurrency = baseCurrency; // Always use base currency for consistency
