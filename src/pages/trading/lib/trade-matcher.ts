@@ -130,6 +130,8 @@ export class TradeMatcher {
       currency: dividend.currency,
       accountId: dividend.accountId,
       accountName: dividend.accountName || "",
+      buyActivityId: dividend.id,
+      sellActivityId: dividend.id,
     };
   }
 
