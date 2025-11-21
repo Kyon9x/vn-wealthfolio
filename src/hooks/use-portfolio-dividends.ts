@@ -14,20 +14,27 @@ export function usePortfolioDividends() {
         { id: "date", desc: true },
       );
 
-      // Aggregate dividends by symbol
-      const dividendsMap = new Map<string, number>();
+      // Aggregate dividends
+      const dividendsBySymbol = new Map<string, number>();
+      const dividendsByAccount = new Map<string, number>();
       
       for (const activity of response.data) {
         const symbol = activity.assetSymbol;
         const amount = activity.amount || 0;
+        const accountId = activity.accountId;
         
         if (symbol) {
-          const current = dividendsMap.get(symbol) || 0;
-          dividendsMap.set(symbol, current + amount);
+          const current = dividendsBySymbol.get(symbol) || 0;
+          dividendsBySymbol.set(symbol, current + amount);
+        }
+
+        if (accountId) {
+          const current = dividendsByAccount.get(accountId) || 0;
+          dividendsByAccount.set(accountId, current + amount);
         }
       }
 
-      return dividendsMap;
+      return { dividendsBySymbol, dividendsByAccount };
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
