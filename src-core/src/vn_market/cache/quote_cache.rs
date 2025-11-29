@@ -6,13 +6,6 @@ use std::time::Duration;
 
 use crate::vn_market::cache::models::{CachedQuote, VnAssetType};
 
-/// Cache key for quotes
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct QuoteCacheKey {
-    symbol: String,
-    asset_type: VnAssetType,
-}
-
 /// In-memory quote cache with asset-specific TTL
 pub struct VnQuoteCache {
     /// Stock quotes cache (1 hour TTL)

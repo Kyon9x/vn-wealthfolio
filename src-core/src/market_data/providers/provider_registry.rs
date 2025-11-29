@@ -402,32 +402,6 @@ impl ProviderRegistry {
         Err(MarketDataError::NotFound(symbol.to_string()))
     }
 
-    pub async fn search_ticker(&self, query: &str) -> Result<Vec<QuoteSummary>, MarketDataError> {
-        for (profiler_id, profiler) in self.get_enabled_profilers() {
-            match profiler.search_ticker(query).await {
-                Ok(results) if !results.is_empty() => {
-                    return Ok(results);
-                }
-                Ok(_) => {
-                    info!(
-                        "Profiler '{}' found no results for query '{}'. Trying next.",
-                        profiler_id, query
-                    );
-                }
-                Err(e) => {
-                    debug!(
-                        "Profiler '{}' failed to search for query '{}': {:?}. Trying next.",
-                        profiler_id, query, e
-                    );
-                }
-            }
-        }
-
-        // Return empty array instead of error to allow frontend to show "Add manual asset" option
-        info!("No results found for query '{}' from any provider. Returning empty results.", query);
-        Ok(vec![])
-    }
-
     /// Search all providers in parallel and return combined results with provider IDs
     pub async fn search_ticker_parallel(
             &self,

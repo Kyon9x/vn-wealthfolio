@@ -207,7 +207,7 @@ impl VnMarketService {
         };
 
         // Get latest NAV from all history
-        let mut client = self.fmarket_client.write().await;
+        let client = self.fmarket_client.write().await;
         let history = client.get_all_nav_history(fund_id).await?;
 
         let latest = history
@@ -345,7 +345,7 @@ impl VnMarketService {
                 .ok_or_else(|| VnMarketError::FundNotFound(symbol.to_string()))?
         };
 
-        let mut client = self.fmarket_client.write().await;
+        let client = self.fmarket_client.write().await;
         let start_str = start.format("%Y-%m-%d").to_string();
         let end_str = end.format("%Y-%m-%d").to_string();
         let nav_records = client.get_nav_history(fund_id, &start_str, &end_str).await?;
