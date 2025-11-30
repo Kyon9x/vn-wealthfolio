@@ -13,8 +13,8 @@ use crate::vn_market::utils::headers::vci_headers;
 const VCI_BASE_URL: &str = "https://trading.vietcap.com.vn/api";
 const REQUEST_TIMEOUT_SECS: u64 = 30;
 
-/// Price multiplier - VCI returns prices in 1000 VND units
-const PRICE_MULTIPLIER: f64 = 1000.0;
+/// Price multiplier - VCI returns prices in actual VND (no multiplication needed)
+const PRICE_MULTIPLIER: f64 = 1.0;
 
 /// VCI API client for fetching stock and index data
 #[derive(Clone)]
@@ -203,7 +203,7 @@ mod tests {
 
         assert!(!quotes.is_empty());
         assert!(quotes[0].close > Decimal::ZERO);
-        // Prices should be in VND (thousands range for VNM)
-        assert!(quotes[0].close > Decimal::new(10000, 0));
+        // Prices should be in VND (tens of thousands range for VNM)
+        assert!(quotes[0].close > Decimal::new(50000, 0));
     }
 }

@@ -71,13 +71,13 @@ pub struct VciOhlcResponse {
     /// Timestamps (Unix seconds) - VCI returns these as strings
     #[serde(deserialize_with = "deserialize_timestamps")]
     pub t: Vec<i64>,
-    /// Open prices (in 1000 VND units)
+    /// Open prices (in VND)
     pub o: Vec<f64>,
-    /// High prices (in 1000 VND units)
+    /// High prices (in VND)
     pub h: Vec<f64>,
-    /// Low prices (in 1000 VND units)
+    /// Low prices (in VND)
     pub l: Vec<f64>,
-    /// Close prices (in 1000 VND units)
+    /// Close prices (in VND)
     pub c: Vec<f64>,
     /// Volume
     pub v: Vec<i64>,

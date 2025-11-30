@@ -151,4 +151,10 @@ mod tests {
         assert!(is_gold_symbol("GOLD"));
         assert!(!is_gold_symbol("VNM"));
     }
+
+    #[test]
+    fn test_conversion_factor() {
+        assert_eq!(GoldUnit::Luong.conversion_factor(), rust_decimal::Decimal::ONE);
+        assert_eq!(GoldUnit::Chi.conversion_factor(), rust_decimal::Decimal::new(1, 1)); // 0.1
+    }
 }

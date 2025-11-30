@@ -240,27 +240,38 @@ impl VnMarketService {
 
     /// Fetch gold quote from SJC - tries cache first, falls back to API
     async fn fetch_gold_quote(&self, symbol: &str) -> Result<CachedQuote, VnMarketError> {
+        // Determine gold unit and conversion factor
+        let gold_unit = crate::vn_market::models::gold::GoldUnit::from_symbol(symbol);
+        let conversion_factor = gold_unit.conversion_factor();
+
         // Try to get latest from historical cache first
         if let Some(ref cache) = self.historical_cache {
-            if let Ok(Some(latest)) = cache.get_latest_record("VN.GOLD", VnAssetType::Gold) {
+            // Use normalized symbol for cache lookup (always store base Luong price)
+            let cache_symbol = crate::vn_market::models::gold::normalize_gold_symbol(symbol);
+            if let Ok(Some(latest)) = cache.get_latest_record(&cache_symbol, VnAssetType::Gold) {
                 let today = Utc::now().date_naive();
                 let days_old = (today - latest.date).num_days();
 
                 // If cached data is from today or yesterday (accounting for weekends), use it
                 if days_old <= 3 {
-                    debug!("Using cached gold quote from {}", latest.date);
+                    debug!("Using cached gold quote from {} for {}", latest.date, symbol);
+                    // Apply conversion factor for cached data
+                    let adjusted_close = latest.close * conversion_factor;
+                    let adjusted_buy = latest.buy_price.map(|price| price * conversion_factor);
+                    let adjusted_sell = latest.sell_price.map(|price| price * conversion_factor);
+                    
                     return Ok(CachedQuote {
                         symbol: symbol.to_string(),
                         asset_type: VnAssetType::Gold,
                         date: latest.date,
-                        open: latest.close,
-                        high: latest.close,
-                        low: latest.close,
-                        close: latest.close,
+                        open: adjusted_close,
+                        high: adjusted_close,
+                        low: adjusted_close,
+                        close: adjusted_close,
                         volume: Decimal::ZERO,
                         nav: None,
-                        buy_price: latest.buy_price,
-                        sell_price: latest.sell_price,
+                        buy_price: adjusted_buy,
+                        sell_price: adjusted_sell,
                         currency: "VND".to_string(),
                     });
                 }
@@ -270,19 +281,26 @@ impl VnMarketService {
         // Fetch from API
         let quote = self.sjc_client.get_latest_quote(symbol).await?;
 
-        // Store in historical cache if available
+        // Apply conversion factor for Chi unit
+        let adjusted_close = quote.close * conversion_factor;
+        let adjusted_buy = quote.buy_price * conversion_factor;
+        let adjusted_sell = quote.sell_price * conversion_factor;
+
+        // Store in historical cache if available (always store as Luong - base unit)
         if let Some(ref cache) = self.historical_cache {
-            let record = VnHistoricalRecord::new(
-                "VN.GOLD",
+            // Store base Luong price with normalized cache key
+            let cache_symbol = crate::vn_market::models::gold::normalize_gold_symbol(symbol);
+let record = VnHistoricalRecord::new(
+                &cache_symbol,
                 VnAssetType::Gold,
                 quote.date,
-                quote.close,
+                quote.close, // Store base price (Luong)
                 quote.close,
                 quote.close,
                 quote.close,
                 Decimal::ZERO,
             )
-            .with_gold_prices(quote.buy_price, quote.sell_price);
+            .with_gold_prices(quote.buy_price, quote.sell_price); // Store base prices
 
             if let Err(e) = cache.store_records(&[record]) {
                 warn!("Failed to cache gold quote: {}", e);
@@ -293,14 +311,14 @@ impl VnMarketService {
             symbol: quote.symbol,
             asset_type: VnAssetType::Gold,
             date: quote.date,
-            open: quote.close,
-            high: quote.close,
-            low: quote.close,
-            close: quote.close,
+            open: adjusted_close,
+            high: adjusted_close,
+            low: adjusted_close,
+            close: adjusted_close,
             volume: Decimal::ZERO,
             nav: None,
-            buy_price: Some(quote.buy_price),
-            sell_price: Some(quote.sell_price),
+            buy_price: Some(adjusted_buy),
+            sell_price: Some(adjusted_sell),
             currency: "VND".to_string(),
         })
     }
@@ -385,18 +403,14 @@ impl VnMarketService {
         start: NaiveDate,
         end: NaiveDate,
     ) -> Result<Vec<VnHistoricalRecord>, VnMarketError> {
-        // Normalize symbol to VN.GOLD for cache lookup
-        let cache_symbol = if symbol.to_uppercase().contains("GOLD") {
-            "VN.GOLD"
-        } else {
-            symbol
-        };
+        // Normalize symbol to VN.GOLD for cache lookup (always store base Luong price)
+        let cache_symbol = crate::vn_market::models::gold::normalize_gold_symbol(symbol);
 
         // Try to get from historical cache first
         if let Some(ref cache) = self.historical_cache {
             // Get cached records
             let cached_records = cache
-                .get_records(cache_symbol, start, end, VnAssetType::Gold)
+                .get_records(&cache_symbol, start, end, VnAssetType::Gold)
                 .unwrap_or_default();
 
             if !cached_records.is_empty() {
@@ -410,7 +424,7 @@ impl VnMarketService {
 
                 // Check if we have all the data we need
                 let cached_dates = cache
-                    .get_cached_dates(cache_symbol, start, end, VnAssetType::Gold)
+                    .get_cached_dates(&cache_symbol, start, end, VnAssetType::Gold)
                     .unwrap_or_default();
 
                 let missing_ranges =
@@ -419,6 +433,34 @@ impl VnMarketService {
                 if missing_ranges.is_empty() {
                     // All data is cached, return it
                     debug!("All gold data is cached, no API call needed");
+                    
+                    // Apply conversion factor if original symbol is Chi unit
+                    let gold_unit = crate::vn_market::models::gold::GoldUnit::from_symbol(symbol);
+                    let conversion_factor = gold_unit.conversion_factor();
+
+                    if conversion_factor != rust_decimal::Decimal::ONE {
+                        let converted_records = cached_records
+                            .into_iter()
+                            .map(|record| {
+                                VnHistoricalRecord::new(
+                                    symbol, // Use original symbol
+                                    VnAssetType::Gold,
+                                    record.date,
+                                    record.open * conversion_factor,
+                                    record.high * conversion_factor,
+                                    record.low * conversion_factor,
+                                    record.close * conversion_factor,
+                                    record.volume,
+                                )
+                            .with_gold_prices(
+                                record.buy_price.unwrap_or_default() * conversion_factor,
+                                record.sell_price.unwrap_or_default() * conversion_factor,
+                            )
+                            })
+                            .collect();
+                        return Ok(converted_records);
+                    }
+                    
                     return Ok(cached_records);
                 }
 
@@ -457,9 +499,38 @@ impl VnMarketService {
                     }
                 }
 
+                // Apply conversion factor if original symbol is Chi unit
+                let gold_unit = crate::vn_market::models::gold::GoldUnit::from_symbol(symbol);
+                let conversion_factor = gold_unit.conversion_factor();
+
+                let final_records = if conversion_factor != rust_decimal::Decimal::ONE {
+                    all_records
+                        .into_iter()
+                        .map(|record| {
+                            VnHistoricalRecord::new(
+                                symbol, // Use original symbol
+                                VnAssetType::Gold,
+                                record.date,
+                                record.open * conversion_factor,
+                                record.high * conversion_factor,
+                                record.low * conversion_factor,
+                                record.close * conversion_factor,
+                                record.volume,
+                            )
+                            .with_gold_prices(
+                                record.buy_price.unwrap_or_default() * conversion_factor,
+                                record.sell_price.unwrap_or_default() * conversion_factor,
+                            )
+                        })
+                        .collect()
+                } else {
+                    all_records
+                };
+
                 // Sort by date
-                all_records.sort_by(|a, b| a.date.cmp(&b.date));
-                return Ok(all_records);
+                let mut sorted_records = final_records;
+                sorted_records.sort_by(|a, b| a.date.cmp(&b.date));
+                return Ok(sorted_records);
             }
         }
 
@@ -487,21 +558,29 @@ impl VnMarketService {
         end: NaiveDate,
     ) -> Result<Vec<VnHistoricalRecord>, VnMarketError> {
         let quotes = self.sjc_client.get_history(start, end).await?;
+        
+        // Determine gold unit and conversion factor
+        let gold_unit = crate::vn_market::models::gold::GoldUnit::from_symbol(symbol);
+        let conversion_factor = gold_unit.conversion_factor();
+        
+        // Use normalized cache symbol (always store base Luong price)
+        let cache_symbol = crate::vn_market::models::gold::normalize_gold_symbol(symbol);
 
         Ok(quotes
             .into_iter()
             .map(|q| {
+                // Store base Luong price with normalized cache key
                 VnHistoricalRecord::new(
-                    symbol,
+                    &cache_symbol, // Store with normalized symbol
                     VnAssetType::Gold,
                     q.date,
-                    q.close,
+                    q.close, // Store base Luong price
                     q.close,
                     q.close,
                     q.close,
                     Decimal::ZERO,
                 )
-                .with_gold_prices(q.buy_price, q.sell_price)
+                .with_gold_prices(q.buy_price, q.sell_price) // Store base Luong prices
             })
             .collect())
     }

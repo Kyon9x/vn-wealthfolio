@@ -6,7 +6,7 @@
   <h3 align="center">WealthVN</h3>
 
   <p align="center">
-    A Beautiful Portfolio Tracker for Vietnamese Market
+    A Beautiful Portfolio Tracker for Vietnamese Market | Ứng dụng Theo dõi Danh mục Đầu tư cho Thị trường Việt Nam
     <br />
     <br />
     <a href="https://github.com/chipheo00/vn-wealthfolio">GitHub</a>
@@ -17,14 +17,42 @@
   </p>
 </div>
 
-## Introduction
+---
+
+### Giới thiệu
+
+**WealthVN** là ứng dụng theo dõi danh mục đầu tư đẹp mắt được thiết kế riêng
+cho thị trường Việt Nam, với lưu trữ dữ liệu cục bộ. Không cần đăng ký, không
+phụ thuộc vào đám mây.
+
+Được fork từ [Wealthfolio](https://github.com/afadil/wealthfolio) của Aziz
+Fadil.
+
+![Screenshot](public/screenshot.webp)
+
+### Tính năng chính
+
+- **Theo dõi Danh mục** - Theo dõi khoản đầu tư của bạn trên nhiều tài khoản và
+  loại tài sản
+- **Phân tích Hiệu suất** - Chỉ số hiệu suất chi tiết và phân tích lịch sử
+- **Quản lý Giao dịch** - Nhập và quản lý tất cả hoạt động giao dịch của bạn
+- **Lập kế hoạch Mục tiêu** - Đặt và theo dõi mục tiêu tài chính với quản lý
+  phân bổ
+- **Dữ liệu Cục bộ** - Tất cả dữ liệu được lưu trữ cục bộ, không phụ thuộc vào
+  đám mây
+- **Mở rộng** - Hệ thống addon mạnh mẽ cho chức năng tùy chỉnh
+- **Đa tiền tệ** - Hỗ trợ nhiều loại tiền tệ với quản lý tỷ giá hối đoái
+- **Đa ngôn ngữ** - Hỗ trợ quốc tế hóa đầy đủ (Tiếng Anh, Tiếng Việt)
+- **Đa nền tảng** - Có sẵn trên Windows, macOS và Linux
+- **Hỗ trợ Thị trường VN** - Hỗ trợ tích hợp dữ liệu thị trường chứng khoán Việt
+  Nam
+
+### Introduction
 
 **WealthVN** is a Beautiful Portfolio Tracker designed for the Vietnamese
 market, with Local Data Storage. No Subscriptions, No Cloud.
 
 Forked from [Wealthfolio](https://github.com/afadil/wealthfolio) by Aziz Fadil.
-
-![Screenshot](public/screenshot.webp)
 
 ### Key Features
 
@@ -41,26 +69,6 @@ Forked from [Wealthfolio](https://github.com/afadil/wealthfolio) by Aziz Fadil.
 - **Multi-Language** - Full internationalization support (English, Vietnamese)
 - **Cross-Platform** - Available on Windows, macOS, and Linux
 - **VN Market Support** - Built-in support for Vietnamese stock market data
-
-### Addon System
-
-WealthVN features a powerful addon system that allows developers to extend
-functionality:
-
-- **Easy Development** - TypeScript SDK with full type safety and hot reload
-- **Secure** - Comprehensive permission system with user consent
-- **High Performance** - Optimized for speed with minimal overhead
-- **UI Integration** - Add custom pages, navigation items, and components
-- **Real-time Events** - Listen to portfolio updates, market sync, and user
-  actions
-- **Full Data Access** - Access to accounts, holdings, activities, and market
-  data
-- **Secrets Management** - Secure storage for API keys and sensitive data
-
-**Get started building addons:** See the
-[Addon Documentation Hub](docs/addons/index.md)
-
-## Getting Started
 
 ### Prerequisites
 
