@@ -1,4 +1,4 @@
-import { isSameDay, startOfYear, subDays, subMonths, subYears } from "date-fns";
+import { isSameDay, subDays, subMonths, subYears } from "date-fns";
 import { DateRange as DayPickerDateRange } from "react-day-picker";
 import { cn } from "../../lib/utils";
 import { AnimatedToggleGroup } from "../ui/animated-toggle-group";
@@ -37,7 +37,10 @@ const ranges = [
   {
     label: "YTD",
     name: "Year to Date",
-    getValue: () => ({ from: startOfYear(new Date()), to: new Date() }),
+    getValue: () => {
+      const now = new Date();
+      return { from: new Date(now.getFullYear(), 0, 1), to: now };
+    },
   },
   {
     label: "1Y",

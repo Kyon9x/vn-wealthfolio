@@ -105,7 +105,14 @@ impl MarketDataServiceTrait for MarketDataService {
 
         let provider_results: Vec<QuoteSummary> = sorted_provider_results
             .into_iter()
-            .map(|(_, _, summary)| summary)
+            .map(|(_, _, summary)| {
+                // Normalize Vietnamese index symbols: strip ^ prefix and .VN suffix
+                let normalized_symbol = Self::normalize_vietnamese_index_symbol(&summary.symbol);
+                QuoteSummary {
+                    symbol: normalized_symbol,
+                    ..summary
+                }
+            })
             .collect();
 
         // 5. Combine: local assets first, then provider results
@@ -535,9 +542,25 @@ impl MarketDataService {
         })
     }
 
+    /// Normalize Vietnamese index symbols by stripping ^ prefix and .VN suffix
+    fn normalize_vietnamese_index_symbol(symbol: &str) -> String {
+        let mut result = symbol.to_string();
 
+        // Strip ^ prefix if present (Yahoo index convention)
+        if result.starts_with('^') {
+            result = result[1..].to_string();
+        }
 
+        // Strip .VN suffix for Vietnamese index symbols
+        if result.ends_with(".VN") {
+            let base_symbol = result.trim_end_matches(".VN");
+            if crate::vn_market::models::stock::map_index_symbol(base_symbol).is_some() {
+                result = base_symbol.to_string();
+            }
+        }
 
+        result
+    }
 
     /// Refreshes the provider registry with the latest settings from the database
     async fn refresh_provider_registry(&self) -> Result<()> {

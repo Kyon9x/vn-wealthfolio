@@ -45,8 +45,21 @@ export function useCalculatePerformanceHistory({
   });
 
   // Get the formatted date range for API calls, keep as undefined if not present
-  const startDate = dateRange?.from ? dateRange.from.toISOString().split("T")[0] : undefined;
-  const endDate = dateRange?.to ? dateRange.to.toISOString().split("T")[0] : undefined;
+  // Use local date string instead of ISO (which converts to UTC and can shift dates)
+  const startDate = dateRange?.from
+    ? dateRange.from.getFullYear() +
+      "-" +
+      String(dateRange.from.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(dateRange.from.getDate()).padStart(2, "0")
+    : undefined;
+  const endDate = dateRange?.to
+    ? dateRange.to.getFullYear() +
+      "-" +
+      String(dateRange.to.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(dateRange.to.getDate()).padStart(2, "0")
+    : undefined;
 
   // Check if we need to update our tracking refs
   const currentSelectionKey = selectedItems.map((item) => item.id).join(",");
