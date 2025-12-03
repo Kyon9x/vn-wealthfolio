@@ -116,8 +116,8 @@ All documentation successfully created:
 
 ### Goal
 
-Implement full internationalization (i18n) support for WealthVN with English
-and Vietnamese language options, allowing users to switch languages dynamically
+Implement full internationalization (i18n) support for WealthVN with English and
+Vietnamese language options, allowing users to switch languages dynamically
 through the Settings interface.
 
 ### Key Features
@@ -1227,7 +1227,7 @@ store operations.
 
 - **Translation Coverage:** >95% of user-facing text
 - **Test Coverage:** >80% for i18n utilities
-- **Performance:** Language switch <500ms
+- **Performance:** Language switch &lt;500ms
 - **User Satisfaction:** Positive feedback from Vietnamese users
 
 ---

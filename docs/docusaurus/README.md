@@ -1,6 +1,7 @@
 # Wealthfolio Documentation
 
-This directory contains the Docusaurus-based documentation site for Wealthfolio, built from source documentation and auto-generated API references.
+This directory contains the Docusaurus-based documentation site for Wealthfolio,
+built from source documentation and auto-generated API references.
 
 ## Overview
 
@@ -68,6 +69,7 @@ pnpm docs:serve
 ## Scripts
 
 ### pnpm start
+
 Starts the Docusaurus development server with hot reload.
 
 ```bash
@@ -75,7 +77,9 @@ pnpm start
 ```
 
 ### pnpm build
+
 Orchestrates the complete documentation build:
+
 1. Syncs content from `/docs/` directory
 2. Generates API documentation
 3. Builds Docusaurus site
@@ -85,6 +89,7 @@ pnpm build
 ```
 
 ### pnpm serve
+
 Serves the production build locally.
 
 ```bash
@@ -92,6 +97,7 @@ pnpm serve
 ```
 
 ### pnpm sync
+
 Manually sync documentation from `/docs/` directory to `docs/`.
 
 ```bash
@@ -99,6 +105,7 @@ pnpm sync
 ```
 
 ### pnpm generate-api
+
 Manually generate API documentation.
 
 ```bash
@@ -272,14 +279,16 @@ When contributing to documentation:
 ## Performance
 
 - **Build Time**: ~30-60 seconds (full build with API generation)
-- **Page Load**: <1 second (static HTML)
-- **Search**: <500ms for full-text search
+- **Page Load**: &lt;1 second (static HTML)
+- **Search**: &lt;500ms for full-text search
 - **Size**: ~5-10 MB (optimized build)
 
 ## Support
 
-- **Issues**: Report bugs on [GitHub Issues](https://github.com/chipheo00/vn-wealthfolio/issues)
-- **Discussions**: Ask questions on [GitHub Discussions](https://github.com/chipheo00/vn-wealthfolio/discussions)
+- **Issues**: Report bugs on
+  [GitHub Issues](https://github.com/chipheo00/vn-wealthfolio/issues)
+- **Discussions**: Ask questions on
+  [GitHub Discussions](https://github.com/chipheo00/vn-wealthfolio/discussions)
 - **Documentation**: See `/docs/` for source documentation
 
 ## License
