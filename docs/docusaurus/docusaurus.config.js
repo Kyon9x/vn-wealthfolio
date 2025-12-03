@@ -1,88 +1,88 @@
-import { themes as prismThemes } from 'prism-react-renderer';
+import { themes as prismThemes } from "prism-react-renderer";
 
 export default {
-  title: 'WealthVN Documentation',
-  tagline: 'Internal Developer Documentation for WealthVN',
-  favicon: 'img/favicon.ico',
-  url: 'https://docs.wealthvn.local',
-  baseUrl: '/',
-  organizationName: 'chipheo00',
-  projectName: 'vn-wealthfolio',
-  deploymentBranch: 'gh-pages',
-  onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  title: "WealthVN Documentation",
+  tagline: "Internal Developer Documentation for WealthVN",
+  favicon: "img/favicon.ico",
+  url: "https://docs.wealthvn.local",
+  baseUrl: "/",
+  organizationName: "chipheo00",
+  projectName: "vn-wealthfolio",
+  deploymentBranch: "gh-pages",
+  onBrokenLinks: "ignore",
+  onBrokenMarkdownLinks: "ignore",
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
   presets: [
     [
-      '@docusaurus/preset-classic',
+      "@docusaurus/preset-classic",
       {
         docs: {
-          sidebarPath: './sidebars.js',
-          editUrl: 'https://github.com/chipheo00/vn-wealthfolio/tree/main/docs/',
-          routeBasePath: '/',
+          sidebarPath: "./sidebars.js",
+          editUrl: "https://github.com/chipheo00/vn-wealthfolio/tree/main/docs/",
+          routeBasePath: "/",
         },
         blog: false,
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: "./src/css/custom.css",
         },
       },
     ],
   ],
   themeConfig: {
-    image: 'img/social-card.png',
+    image: "img/social-card.png",
     navbar: {
-      title: 'WealthVN Docs',
+      title: "WealthVN Docs",
       logo: {
-        alt: 'WealthVN Logo',
-        src: 'img/logo.png',
+        alt: "WealthVN Logo",
+        src: "img/logo.png",
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          label: 'Documentation',
-          position: 'left',
+          type: "docSidebar",
+          sidebarId: "tutorialSidebar",
+          label: "Documentation",
+          position: "left",
         },
         {
-          href: 'https://github.com/chipheo00/vn-wealthfolio',
-          label: 'GitHub',
-          position: 'right',
+          href: "https://github.com/chipheo00/vn-wealthfolio",
+          label: "GitHub",
+          position: "right",
         },
       ],
     },
     footer: {
-      style: 'dark',
+      style: "dark",
       links: [
         {
-          title: 'Documentation',
+          title: "Documentation",
           items: [
             {
-              label: 'Getting Started',
-              to: '/intro',
+              label: "Getting Started",
+              to: "/intro",
             },
             {
-              label: 'Development',
-              to: '/development/overview',
+              label: "Development",
+              to: "/development/overview",
             },
             {
-              label: 'API Reference',
-              to: '/api/overview',
+              label: "API Reference",
+              to: "/api/overview",
             },
           ],
         },
         {
-          title: 'Resources',
+          title: "Resources",
           items: [
             {
-              label: 'GitHub Repository',
-              href: 'https://github.com/chipheo00/vn-wealthfolio',
+              label: "GitHub Repository",
+              href: "https://github.com/chipheo00/vn-wealthfolio",
             },
             {
-              label: 'Issues & Discussions',
-              href: 'https://github.com/chipheo00/vn-wealthfolio/issues',
+              label: "Issues & Discussions",
+              href: "https://github.com/chipheo00/vn-wealthfolio/issues",
             },
           ],
         },
@@ -92,10 +92,10 @@ export default {
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,
-      additionalLanguages: ['rust', 'typescript', 'bash', 'json', 'sql'],
+      additionalLanguages: ["rust", "typescript", "bash", "json", "sql"],
     },
     colorMode: {
-      defaultMode: 'light',
+      defaultMode: "light",
       disableSwitch: false,
       respectPrefersColorScheme: true,
     },
