@@ -4,10 +4,11 @@ module.exports = {
   title: "WealthVN Documentation",
   tagline: "Internal Developer Documentation for WealthVN",
   favicon: "img/favicon.ico",
-  url: "https://docs.wealthvn.local",
-  baseUrl: "/",
+  url: "https://chipheo00.github.io",
+  baseUrl: "/wealth-vn/",
   organizationName: "chipheo00",
   projectName: "vn-wealthfolio",
+  trailingSlash: false,
   deploymentBranch: "gh-pages",
   onBrokenLinks: "ignore",
   markdown: {
