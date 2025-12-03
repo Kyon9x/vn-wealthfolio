@@ -10,7 +10,11 @@ export default {
   projectName: "vn-wealthfolio",
   deploymentBranch: "gh-pages",
   onBrokenLinks: "ignore",
-  onBrokenMarkdownLinks: "ignore",
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: "ignore",
+    },
+  },
   i18n: {
     defaultLocale: "en",
     locales: ["en"],

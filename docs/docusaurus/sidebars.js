@@ -72,66 +72,6 @@ export default {
           type: "doc",
           id: "api/overview",
         },
-        {
-          type: "category",
-          label: "TypeScript",
-          items: [
-            {
-              type: "doc",
-              id: "api/typescript/types",
-            },
-            {
-              type: "doc",
-              id: "api/typescript/commands",
-            },
-            {
-              type: "doc",
-              id: "api/typescript/schemas",
-            },
-          ],
-        },
-        {
-          type: "category",
-          label: "Rust",
-          items: [
-            {
-              type: "doc",
-              id: "api/rust/tauri-commands",
-            },
-            {
-              type: "doc",
-              id: "api/rust/web-api",
-            },
-          ],
-        },
-        {
-          type: "category",
-          label: "Addon SDK",
-          items: [
-            {
-              type: "doc",
-              id: "api/addon-sdk/host-api",
-            },
-            {
-              type: "doc",
-              id: "api/addon-sdk/permissions",
-            },
-            {
-              type: "doc",
-              id: "api/addon-sdk/types",
-            },
-          ],
-        },
-        {
-          type: "category",
-          label: "OpenAPI",
-          items: [
-            {
-              type: "doc",
-              id: "api/openapi/spec",
-            },
-          ],
-        },
       ],
     },
     {
