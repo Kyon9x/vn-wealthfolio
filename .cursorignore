@@ -1,0 +1,33 @@
+# Build artifacts
+target/
+Cargo.lock
+dist/
+build/
+
+# Node modules
+node_modules/
+.pnpm-store/
+
+# Large generated files
+*.log
+*.sqlite
+*.db
+
+# Cache directories
+.cache/
+.parcel-cache/
+.vite/
+
+# Large documentation (load on demand)
+docs/docusaurus/docs/development/i18n.md
+docs/multi-language-plan.md
+docs/vn_market/vn-market-rust-migration-plan.md
+packages/addon-sdk/README.md
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# IDE files
+.vscode/settings.json
+.idea/
