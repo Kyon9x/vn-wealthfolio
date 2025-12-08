@@ -55,7 +55,7 @@ jobs:
       - name: Clean Docusaurus cache
         run: cd docs/docusaurus && rm -rf .docusaurus build node_modules/.cache
       - name: Build documentation
-        run: cd docs/docusaurus && NODE_OPTIONS="--max-old-space-size=4096" pnpm docusaurus build
+        run: cd docs/docusaurus && NODE_OPTIONS="--max-old-space-size=4096" pnpm build
       - name: Check build output
         run: |
           if [ ! -d "docs/docusaurus/build" ]; then
