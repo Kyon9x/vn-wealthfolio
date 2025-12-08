@@ -98,13 +98,13 @@ impl MarketDataServiceTrait for MarketDataService {
             .map(|(provider_id, mut summary)| {
                 let priority = provider_priority_map.get(&provider_id).copied().unwrap_or(999);
                 let score = -(summary.score as i32); // Negative for descending order
-                
+
                 // Normalize Vietnamese index symbols: strip ^ prefix and .VN suffix
                 let normalized_symbol = Self::normalize_vietnamese_index_symbol(&summary.symbol);
                 summary.symbol = normalized_symbol;
                 // Preserve provider_id in data_source field
                 summary.data_source = Some(provider_id);
-                
+
                 (priority, score, summary)
             })
             .collect();
@@ -200,6 +200,41 @@ impl MarketDataServiceTrait for MarketDataService {
             "Getting symbol history for {} from {} to {}",
             symbol, start_date, end_date
         );
+
+        // 1. Try to fetch from DB first
+        let mut symbols_set = HashSet::new();
+        symbols_set.insert(symbol.to_string());
+
+        let db_quotes = self.repository.get_historical_quotes_for_symbols_in_range(
+            &symbols_set,
+            start_date,
+            end_date
+        )?;
+
+        // 2. Check if DB data is sufficient
+        // We consider data sufficient if we have quotes covering most of the requested range.
+        let is_data_sufficient = if !db_quotes.is_empty() {
+             let min_date = db_quotes.iter().map(|q| q.timestamp.date_naive()).min().unwrap();
+             let max_date = db_quotes.iter().map(|q| q.timestamp.date_naive()).max().unwrap();
+
+             // Allow some tolerance for weekends/holidays differences
+             let start_tolerance = Duration::days(7);
+             let end_tolerance = Duration::days(5);
+
+             min_date <= start_date + start_tolerance && max_date >= end_date - end_tolerance
+        } else {
+            false
+        };
+
+        if is_data_sufficient {
+            debug!("Found sufficient local data for {} ({} quotes). Returning from DB.", symbol, db_quotes.len());
+            let mut sorted_quotes = db_quotes;
+            sorted_quotes.sort_by(|a, b| a.timestamp.cmp(&b.timestamp));
+            return Ok(sorted_quotes);
+        }
+
+        // 3. If not sufficient, fetch from provider
+        debug!("Local data insufficient for {}. Fetching from provider...", symbol);
         let start_time: SystemTime = Utc
             .from_utc_datetime(&start_date.and_hms_opt(0, 0, 0).unwrap())
             .into();
@@ -207,12 +242,25 @@ impl MarketDataServiceTrait for MarketDataService {
             .from_utc_datetime(&end_date.and_hms_opt(23, 59, 59).unwrap())
             .into();
 
-        self.provider_registry
+        let fetched_quotes = self.provider_registry
             .read()
             .await
             .historical_quotes(symbol, start_time, end_time, "USD".to_string())
             .await
-            .map_err(|e| e.into())
+            .map_err(|e| crate::errors::Error::from(e))?;
+
+        // 4. Save to DB
+        if !fetched_quotes.is_empty() {
+            debug!("Saving {} fetched quotes for {} to DB.", fetched_quotes.len(), symbol);
+            if let Err(e) = self.repository.save_quotes(&fetched_quotes).await {
+                error!("Failed to save fetched quotes for {}: {}", symbol, e);
+                // Continue even if save fails
+            }
+        } else {
+            debug!("Provider returned no quotes for {}", symbol);
+        }
+
+        Ok(fetched_quotes)
     }
 
     async fn sync_market_data(&self) -> Result<((), Vec<(String, String)>)> {
