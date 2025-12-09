@@ -1,4 +1,4 @@
-# Multi-stage build for Wealthfolio Documentation CI
+# Multi-stage build for Wealth-VN Documentation CI
 # Optimized for GitHub Actions workflow
 
 FROM node:20-alpine AS builder
@@ -24,7 +24,15 @@ RUN pnpm install --frozen-lockfile
 
 # Build documentation
 WORKDIR /app/docs
-RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm build
+
+# Step 1: Sync documentation content
+RUN node scripts/sync-docs.js
+
+# Step 2: Generate API documentation
+RUN node scripts/generate-api-docs.js
+
+# Step 3: Build Docusaurus site
+RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm exec docusaurus build
 
 # Output stage - only the build artifacts
 FROM scratch AS output
