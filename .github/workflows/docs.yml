@@ -44,13 +44,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-
-      - name: Clear pnpm cache
-        run: pnpm store prune
-
-      - name: Install Docusaurus dependencies
-        run: cd docs/docusaurus && pnpm install --no-frozen-lockfile
+        run: pnpm install
 
       - name: Clean Docusaurus cache
         run: cd docs/docusaurus && rm -rf .docusaurus build node_modules/.cache
