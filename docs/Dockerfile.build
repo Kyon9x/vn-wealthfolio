@@ -32,7 +32,7 @@ RUN node scripts/sync-docs.js
 RUN node scripts/generate-api-docs.js
 
 # Step 3: Build Docusaurus site
-RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm exec docusaurus build
+RUN NODE_OPTIONS="--max-old-space-size=4096" ../node_modules/.bin/docusaurus build
 
 # Output stage - only the build artifacts
 FROM scratch AS output
