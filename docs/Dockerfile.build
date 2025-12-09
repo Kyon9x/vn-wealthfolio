@@ -8,23 +8,15 @@ WORKDIR /app
 # Use corepack to prepare pnpm version 9 for lockfileVersion 9.0
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
-# Copy workspace files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-
-# Copy source directories needed for API generation
-COPY src ./src
-COPY src-tauri ./src-tauri
-COPY src-server ./src-server
-COPY src-core ./src-core
-COPY packages ./packages
+# Copy docs directory (standalone service)
 COPY docs ./docs
 
-# Install all dependencies (monorepo + docs)
-RUN pnpm install --frozen-lockfile
-
-# Install docs-specific dependencies
+# Install docs dependencies
 WORKDIR /app/docs
 RUN pnpm install --frozen-lockfile
+
+# Build documentation
+WORKDIR /app/docs
 
 # Step 1: Sync documentation content
 RUN node scripts/sync-docs.js
