@@ -32,6 +32,7 @@ jobs:
           docker build \
             -f docs/Dockerfile.build \
             -t docs-builder:latest \
+            --target=builder \
             --progress=plain \
             .
 
@@ -41,7 +42,7 @@ jobs:
           docker run --rm \
             -v "$(pwd)/docs/build:/output" \
             docs-builder:latest \
-            cp -r /build/* /output/
+            /bin/sh -c "cp -r /app/docs/build/* /output/"
         
       - name: Check build output
         run: |

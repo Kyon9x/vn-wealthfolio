@@ -5,11 +5,9 @@
  * Creates markdown files in docs/api/ subdirectories
  */
 
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const fs = require('fs').promises;
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '../../..');
 const docsDir = path.join(__dirname, '../docs/api');
 
@@ -113,51 +111,7 @@ See the [Development Guide](../../development/overview) for setup instructions.
   console.log('  ✓ Rust API docs generated');
 }
 
-async function generateAddonSDKAPIs() {
-  console.log('  Generating Addon SDK API docs...');
-  
-  await ensureDir(path.join(docsDir, 'addon-sdk'));
-  
-  const files = [
-    { name: 'host-api.md', title: 'Host API Reference' },
-    { name: 'permissions.md', title: 'Permission Model' },
-    { name: 'types.md', title: 'Type Definitions' },
-  ];
 
-  for (const file of files) {
-    const content = `---
-title: ${file.title}
----
-
-# ${file.title}
-
-Auto-generated API documentation from Addon SDK sources.
-
-> **Note**: This documentation is auto-generated from TypeScript sources. Run \`pnpm docs:generate\` to update.
-
-## Overview
-
-This section documents the ${file.title.toLowerCase()} for developing Wealthfolio addons.
-
-### Source Locations
-
-- Addon SDK: \`packages/addon-sdk/src/\`
-- Addon Examples: \`addons/\`
-- Development Tools: \`packages/addon-dev-tools/\`
-
-## Getting Started
-
-See the [Addon Development Guide](../../addons/) for setup instructions.
-`;
-
-    await fs.writeFile(
-      path.join(docsDir, 'addon-sdk', file.name),
-      content
-    );
-  }
-  
-  console.log('  ✓ Addon SDK API docs generated');
-}
 
 async function generateOpenAPISpec() {
   console.log('  Generating OpenAPI documentation...');
@@ -211,7 +165,6 @@ async function main() {
     
     await generateTypeScriptAPIs();
     await generateRustAPIs();
-    await generateAddonSDKAPIs();
     await generateOpenAPISpec();
     
     console.log('\n✓ API documentation generated successfully\n');

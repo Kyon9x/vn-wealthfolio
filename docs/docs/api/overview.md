@@ -22,14 +22,6 @@ This section contains comprehensive API documentation for all Wealthfolio servic
 - **[Tauri Commands](./rust/tauri-commands)** - 83+ desktop backend commands for Tauri IPC
 - **[Web API](./rust/web-api)** - 50+ HTTP endpoints for web mode and server operations
 
-## Addon SDK
-
-**TypeScript SDK for building custom addons and extensions.**
-
-- **[Host API Reference](./addon-sdk/host-api)** - Complete HostAPI interface for addon development
-- **[Permission Model](./addon-sdk/permissions)** - 15 permission categories and capability system
-- **[Type Definitions](./addon-sdk/types)** - SDK type definitions and interfaces
-
 ## OpenAPI Specification
 
 - **[OpenAPI Spec](./openapi/spec)** - Complete OpenAPI 3.0 specification for all HTTP endpoints
@@ -48,11 +40,6 @@ This section contains comprehensive API documentation for all Wealthfolio servic
 - Add HTTP endpoint to [src-server/src/api.rs](../../src-server/src/api.rs)
 - Reference [Tauri Commands](./rust/tauri-commands) and [Web API](./rust/web-api)
 
-**Developing an Addon?**
-- Read [Addon Development Guide](../addons/index)
-- Study [Host API Reference](./addon-sdk/host-api)
-- Review [Permission Model](./addon-sdk/permissions)
-
 ### By Technology Stack
 
 **TypeScript/React Frontend**
@@ -63,10 +50,6 @@ This section contains comprehensive API documentation for all Wealthfolio servic
 **Rust Backend**
 - [Tauri Commands](./rust/tauri-commands)
 - [Web API](./rust/web-api)
-
-**Addon System**
-- [Host API Reference](./addon-sdk/host-api)
-- [Permission Model](./addon-sdk/permissions)
 
 **Web Services**
 - [OpenAPI Specification](./openapi/spec)
@@ -79,7 +62,6 @@ All API documentation in this section is **automatically generated** during the 
 - TypeScript type definitions and JSDoc comments
 - Rust code and documentation comments
 - OpenAPI specifications
-- Addon SDK interfaces
 
 This ensures documentation stays in sync with the actual code.
 
@@ -98,7 +80,6 @@ See the [Changelog](../../CHANGE_LOG.md) for detailed version history.
 - **[GitHub Issues](https://github.com/chipheo00/vn-wealthfolio/issues)** - Report bugs
 - **[GitHub Discussions](https://github.com/chipheo00/vn-wealthfolio/discussions)** - Ask questions
 - **[Development Guide](../development/overview)** - General development setup
-- **[Addon Development](../addons/)** - Building addons guide
 
 ---
 

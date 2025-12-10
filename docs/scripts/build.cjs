@@ -5,11 +5,8 @@
  * Orchestrates content sync and API doc generation before building the site
  */
 
-import { spawn } from "child_process";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const { spawn } = require("child_process");
+const path = require("path");
 
 function runCommand(cmd, args = []) {
   return new Promise((resolve, reject) => {
@@ -32,17 +29,17 @@ function runCommand(cmd, args = []) {
 
 async function main() {
   try {
-    console.log("📚 Building Wealthfolio Documentation\n");
+    console.log("📚 Building WealthVN Documentation\n");
 
     console.log("1️⃣  Syncing documentation content...");
-    await runCommand("node", [path.join(__dirname, "sync-docs.js")]);
+    await runCommand("node", [path.join(__dirname, "sync-docs.cjs")]);
 
     console.log("\n2️⃣  Generating API documentation...");
-    await runCommand("node", [path.join(__dirname, "generate-api-docs.js")]);
+    await runCommand("node", [path.join(__dirname, "generate-api-docs.cjs")]);
 
     console.log("\n3️⃣  Building Docusaurus site...");
-    // Use pnpm exec to resolve docusaurus from workspace
-    await runCommand("pnpm", ["exec", "docusaurus", "build"]);
+    // Use npx to resolve docusaurus from node_modules
+    await runCommand("npx", ["docusaurus", "build"]);
 
     console.log("\n✅ Documentation build completed successfully!\n");
     process.exit(0);

@@ -11,12 +11,10 @@
  *   GH_WIKI_TOKEN=xxx node sync-wiki.js  # Sync to GitHub
  */
 
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { execSync } from 'child_process';
+const fs = require('fs').promises;
+const path = require('path');
+const { execSync } = require('child_process');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '../../..');
 const wikiSourceDir = path.join(rootDir, 'docs/wiki');
 

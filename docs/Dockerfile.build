@@ -21,13 +21,13 @@ COPY docs ./docs
 WORKDIR /app/docs
 
 # Step 1: Sync documentation content
-RUN node scripts/sync-docs.js
+RUN node scripts/sync-docs.cjs
 
 # Step 2: Generate API documentation
-RUN node scripts/generate-api-docs.js
+RUN node scripts/generate-api-docs.cjs
 
 # Step 3: Build Docusaurus site
-RUN NODE_OPTIONS="--max-old-space-size=4096" pnpm run build || echo "Build failed but continuing"
+RUN NODE_OPTIONS="--max-old-space-size=4096" npx docusaurus build
 
 # Output stage - only the build artifacts
 FROM scratch AS output

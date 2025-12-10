@@ -5,11 +5,9 @@
  * This script copies and transforms content to maintain a single source of truth
  */
 
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+const fs = require('fs').promises;
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const docsDir = path.resolve(__dirname, '..');
 const sourceDir = path.resolve(docsDir, '../docs'); // Root docs folder
 const targetDir = path.join(docsDir, 'docs'); // Docusaurus docs folder
@@ -19,11 +17,6 @@ const syncMappings = [
   {
     source: 'activities',
     target: 'development/activities',
-    type: 'directory',
-  },
-  {
-    source: 'addons',
-    target: 'addons',
     type: 'directory',
   },
   {
