@@ -3,13 +3,13 @@ import * as z from "zod";
 import { AccountType, ActivityType, DataSource, HoldingType } from "./constants";
 
 export {
-  AccountType,
-  ActivityType,
-  DataSource,
-  ExportDataType,
-  ExportedFileFormat,
-  HoldingType,
-  ImportFormat,
+    AccountType,
+    ActivityType,
+    DataSource,
+    ExportDataType,
+    ExportedFileFormat,
+    HoldingType,
+    ImportFormat
 } from "./constants";
 
 export type { ImportRequiredField } from "./constants";
@@ -162,7 +162,7 @@ export interface QuoteSummary {
   longName: string;
   sector?: string;
   industry?: string;
-  dataSource?: boolean;
+  dataSource?: string; // Data provider (e.g., "YAHOO", "VN_MARKET", "MANUAL")
 }
 
 export interface MarketDataProviderInfo {
@@ -338,6 +338,7 @@ export interface QuoteUpdate {
 
 export interface Settings {
   theme: string;
+  themeColor: string;
   font: string;
   baseCurrency: string;
   onboardingCompleted: boolean;

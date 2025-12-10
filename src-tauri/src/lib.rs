@@ -70,6 +70,22 @@ fn spawn_background_tasks(
         });
     }
 
+    // Sync VN market assets on startup
+    let vn_sync_context = context.clone();
+    tauri::async_runtime::spawn(async move {
+        match vn_sync_context.vn_assets_sync_service().sync_all_assets().await {
+            Ok(result) => {
+                log::info!(
+                    "VN assets synced successfully: {} assets updated",
+                    result.total_synced
+                );
+            }
+            Err(e) => {
+                log::warn!("Failed to sync VN assets: {}", e);
+            }
+        }
+    });
+
     // Trigger initial portfolio update on startup
     let initial_payload = PortfolioRequestPayload::builder()
         .account_ids(None)

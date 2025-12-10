@@ -390,6 +390,7 @@ impl AssetProfiler for AlphaVantageProvider {
                 score: m.match_score.parse::<f64>().unwrap_or(0.0),
                 type_display: "".to_string(),
                 index: "".to_string(),
+                data_source: None,
             })
             .collect();
 

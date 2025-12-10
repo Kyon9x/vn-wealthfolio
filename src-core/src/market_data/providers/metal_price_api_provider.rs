@@ -148,72 +148,77 @@ impl AssetProfiler for MetalPriceApiProvider {
         };
 
         // Gold - check if "gold" or "xau" contains the query
-        if "gold".contains(&query) || "xau".contains(&query) {
-            results.push(QuoteSummary {
-                symbol: "XAU".to_string(),
-                long_name: "Gold".to_string(),
-                short_name: "Gold".to_string(),
-                quote_type: "Commodity".to_string(),
-                exchange: "Metal Price Api".to_string(),
-                index: "".to_string(),
-                score: calculate_score("gold", "xau", &query),
-                type_display: "".to_string(),
-            });
-        }
+         if "gold".contains(&query) || "xau".contains(&query) {
+             results.push(QuoteSummary {
+                 symbol: "XAU".to_string(),
+                 long_name: "Gold".to_string(),
+                 short_name: "Gold".to_string(),
+                 quote_type: "Commodity".to_string(),
+                 exchange: "Metal Price Api".to_string(),
+                 index: "".to_string(),
+                 score: calculate_score("gold", "xau", &query),
+                 type_display: "".to_string(),
+                 data_source: None,
+             });
+         }
 
         // Silver - check if "silver" or "xag" contains the query
-        if "silver".contains(&query) || "xag".contains(&query) {
-            results.push(QuoteSummary {
-                symbol: "XAG".to_string(),
-                long_name: "Silver".to_string(),
-                short_name: "Silver".to_string(),
-                quote_type: "Commodity".to_string(),
-                exchange: "Metal Price Api".to_string(),
-                index: "".to_string(),
-                score: calculate_score("silver", "xag", &query),
-                type_display: "".to_string(),
-            });
-        }
+         if "silver".contains(&query) || "xag".contains(&query) {
+             results.push(QuoteSummary {
+                 symbol: "XAG".to_string(),
+                 long_name: "Silver".to_string(),
+                 short_name: "Silver".to_string(),
+                 quote_type: "Commodity".to_string(),
+                 exchange: "Metal Price Api".to_string(),
+                 index: "".to_string(),
+                 score: calculate_score("silver", "xag", &query),
+                 type_display: "".to_string(),
+                 data_source: None,
+             });
+         }
 
         // Platinum - check if "platinum" or "xpt" contains the query
-        if "platinum".contains(&query) || "xpt".contains(&query) {
-            results.push(QuoteSummary {
-                symbol: "XPT".to_string(),
-                long_name: "Platinum".to_string(),
-                short_name: "Platinum".to_string(),
-                quote_type: "Commodity".to_string(),
-                exchange: "Metal Price Api".to_string(),
-                index: "".to_string(),
-                score: calculate_score("platinum", "xpt", &query),
-                type_display: "".to_string(),
-            });
-        }
+         if "platinum".contains(&query) || "xpt".contains(&query) {
+             results.push(QuoteSummary {
+                 symbol: "XPT".to_string(),
+                 long_name: "Platinum".to_string(),
+                 short_name: "Platinum".to_string(),
+                 quote_type: "Commodity".to_string(),
+                 exchange: "Metal Price Api".to_string(),
+                 index: "".to_string(),
+                 score: calculate_score("platinum", "xpt", &query),
+                 type_display: "".to_string(),
+                 data_source: None,
+             });
+         }
 
         // Palladium - check if "palladium" or "xpd" contains the query
-        if "palladium".contains(&query) || "xpd".contains(&query) {
-            results.push(QuoteSummary {
-                symbol: "XPD".to_string(),
-                long_name: "Palladium".to_string(),
-                short_name: "Palladium".to_string(),
-                quote_type: "Commodity".to_string(),
-                exchange: "Metal Price Api".to_string(),
-                index: "".to_string(),
-                score: calculate_score("palladium", "xpd", &query),
-                type_display: "".to_string(),
-            });
-        }
+         if "palladium".contains(&query) || "xpd".contains(&query) {
+             results.push(QuoteSummary {
+                 symbol: "XPD".to_string(),
+                 long_name: "Palladium".to_string(),
+                 short_name: "Palladium".to_string(),
+                 quote_type: "Commodity".to_string(),
+                 exchange: "Metal Price Api".to_string(),
+                 index: "".to_string(),
+                 score: calculate_score("palladium", "xpd", &query),
+                 type_display: "".to_string(),
+                 data_source: None,
+             });
+         }
 
         // Rhodium - check if "rhodium" or "xrh" contains the query
-        if "rhodium".contains(&query) || "xrh".contains(&query) {
-            results.push(QuoteSummary {
-                symbol: "XRH".to_string(),
-                long_name: "Rhodium".to_string(),
-                short_name: "Rhodium".to_string(),
-                quote_type: "Commodity".to_string(),
-                exchange: "Metal Price Api".to_string(),
-                index: "".to_string(),
-                score: calculate_score("rhodium", "xrh", &query),
-                type_display: "".to_string(),
+         if "rhodium".contains(&query) || "xrh".contains(&query) {
+             results.push(QuoteSummary {
+                 symbol: "XRH".to_string(),
+                 long_name: "Rhodium".to_string(),
+                 short_name: "Rhodium".to_string(),
+                 quote_type: "Commodity".to_string(),
+                 exchange: "Metal Price Api".to_string(),
+                 index: "".to_string(),
+                 score: calculate_score("rhodium", "xrh", &query),
+                 type_display: "".to_string(),
+                 data_source: None,
             });
         }
 

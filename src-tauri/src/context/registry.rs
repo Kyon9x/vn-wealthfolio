@@ -1,6 +1,7 @@
 use std::sync::{Arc, RwLock};
 use wealthvn_core::{
     self, accounts, activities, assets, fx, goals, limits, market_data, portfolio, settings,
+    vn_market::VnAssetsSyncService,
 };
 pub struct ServiceContext {
     pub base_currency: Arc<RwLock<String>>,
@@ -20,6 +21,7 @@ pub struct ServiceContext {
     pub snapshot_service: Arc<dyn portfolio::snapshot::SnapshotServiceTrait>,
     pub holdings_service: Arc<dyn portfolio::holdings::HoldingsServiceTrait>,
     pub valuation_service: Arc<dyn portfolio::valuation::ValuationServiceTrait>,
+    pub vn_assets_sync_service: Arc<VnAssetsSyncService>,
 }
 
 impl ServiceContext {
@@ -81,5 +83,9 @@ impl ServiceContext {
 
     pub fn valuation_service(&self) -> Arc<dyn portfolio::valuation::ValuationServiceTrait> {
         Arc::clone(&self.valuation_service)
+    }
+
+    pub fn vn_assets_sync_service(&self) -> Arc<VnAssetsSyncService> {
+        Arc::clone(&self.vn_assets_sync_service)
     }
 }

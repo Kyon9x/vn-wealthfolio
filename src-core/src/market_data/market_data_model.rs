@@ -129,6 +129,9 @@ pub struct QuoteSummary {
     pub score: f64,
     pub type_display: String,
     pub long_name: String,
+    /// Data provider source (e.g., "YAHOO", "VN_MARKET", "MANUAL")
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_source: Option<String>,
 }
 
 #[derive(Debug, Clone)]

@@ -1,16 +1,15 @@
 import { TickerAvatar } from "@/components/ticker-avatar";
 import { Card } from "@/components/ui/card";
-import {
-  calculateActivityValue,
-  isCashActivity,
-  isCashTransfer,
-  isFeeActivity,
-  isIncomeActivity,
-  isSplitActivity,
-} from "@/lib/activity-utils";
-import { getActivityTypeName } from "@/lib/constants";
-import { ActivityDetails } from "@/lib/types";
 import { useDateFormatter } from "@/hooks/use-date-formatter";
+import {
+    calculateActivityValue,
+    isCashActivity,
+    isCashTransfer,
+    isFeeActivity,
+    isIncomeActivity,
+    isSplitActivity,
+} from "@/lib/activity-utils";
+import { ActivityDetails } from "@/lib/types";
 import { formatAmount, Separator } from "@wealthvn/ui";
 import { useTranslation } from "react-i18next";
 import { ActivityOperations } from "../activity-operations";
@@ -55,7 +54,6 @@ export const ActivityTableMobile = ({
 
         // Compact View
         if (isCompactView) {
-          const activityTypeLabel = getActivityTypeName(activity.activityType, t);
           return (
             <Card key={activity.id} className="p-3">
               <div className="flex items-center gap-3">
@@ -69,7 +67,10 @@ export const ActivityTableMobile = ({
                       </span>
                     )}
                   </div>
-                  <p className="text-muted-foreground text-xs">{activityTypeLabel}</p>
+                  <ActivityTypeBadge
+                    type={activity.activityType}
+                    className="text-xs font-normal w-fit mt-1"
+                  />
                   <div className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs">
                     <span>{formattedDateTime}</span>
                     {!isCashActivity(activity.activityType) &&

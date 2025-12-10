@@ -80,7 +80,7 @@ export const FileDropzone = ({
       if (!isValid || error) {
         return "border-red-500 bg-red-50 dark:bg-red-900/10";
       }
-      return "border-green-500 bg-green-50 dark:bg-green-900/10";
+      return "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10";
     }
 
     return "border-border bg-background/50 hover:bg-background/80 hover:border-muted-foreground/50";
@@ -192,13 +192,13 @@ export const FileDropzone = ({
               initial="initial"
               animate="animate"
               exit="exit"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 shadow-sm dark:bg-green-900/20"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 shadow-sm dark:bg-emerald-900/20"
             >
               <motion.div variants={iconVariants} initial="initial" animate="animate">
                 {isValid ? (
-                  <Icons.CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <Icons.CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 ) : (
-                  <Icons.FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <Icons.FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 )}
               </motion.div>
             </motion.div>

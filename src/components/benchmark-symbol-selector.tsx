@@ -11,11 +11,33 @@ import {
 import { Icons } from "@/components/ui/icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DataSource } from "@/lib/constants";
 import { QuoteSummary } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+// Helper function to get display label for data source
+const getDataSourceLabel = (dataSource: string | undefined, t: any): string => {
+  if (!dataSource) return "";
+  switch (dataSource) {
+    case DataSource.YAHOO:
+      return t("settings:securities.form.dataSource.options.yahoo");
+    case DataSource.MANUAL:
+      return t("settings:securities.form.dataSource.options.manual");
+    case DataSource.MARKET_DATA_APP:
+      return t("settings:securities.form.dataSource.options.marketDataApp");
+    case DataSource.ALPHA_VANTAGE:
+      return t("settings:securities.form.dataSource.options.alphaVantage");
+    case DataSource.METAL_PRICE_API:
+      return t("settings:securities.form.dataSource.options.metalPriceApi");
+    case DataSource.VN_MARKET:
+      return t("settings:securities.form.dataSource.options.vnMarket");
+    default:
+      return dataSource;
+  }
+};
 
 const BENCHMARKS = [
   {
@@ -222,43 +244,53 @@ export function BenchmarkSymbolSelector({
             )}
 
             {/* Dynamic search results */}
-            {!isLoading &&
-              !isError &&
-              filteredSearchResults.length > 0 &&
-              searchQuery.length > 2 && (
-                <CommandGroup
-                  heading={t("benchmarkSelector.groups.searchResults")}
-                  className="[&_[cmdk-group-heading]]:bg-popover [&_[cmdk-group-heading]]:border-border/10 [&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:z-10 [&_[cmdk-group-heading]]:border-b"
-                >
-                  {filteredSearchResults.slice(0, 8).map((ticker) => (
-                    <CommandItem
-                      key={ticker.symbol}
-                      value={ticker.symbol}
-                      onSelect={() => handleSearchResultSelect(ticker)}
-                    >
-                      <div className="flex flex-col">
-                        <div className="flex items-center">
-                          <span className="font-medium">{ticker.longName || ticker.symbol}</span>
-                          <span className="text-muted-foreground ml-2 text-xs">
-                            {ticker.symbol}
-                          </span>
-                        </div>
-                        {ticker.exchange && (
-                          <span className="text-muted-foreground text-xs">{ticker.exchange}</span>
-                        )}
-                      </div>
-                      <Icons.Check
-                        className={cn(
-                          "ml-auto h-4 w-4",
-                          value === (ticker.longName || ticker.symbol)
-                            ? "opacity-100"
-                            : "opacity-0",
-                        )}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
+             {!isLoading &&
+               !isError &&
+               filteredSearchResults.length > 0 &&
+               searchQuery.length > 2 && (
+                 <CommandGroup
+                   heading={t("benchmarkSelector.groups.searchResults")}
+                   className="[&_[cmdk-group-heading]]:bg-popover [&_[cmdk-group-heading]]:border-border/10 [&_[cmdk-group-heading]]:sticky [&_[cmdk-group-heading]]:top-0 [&_[cmdk-group-heading]]:z-10 [&_[cmdk-group-heading]]:border-b"
+                 >
+                   {filteredSearchResults.slice(0, 8).map((ticker) => (
+                     <CommandItem
+                       key={`${ticker.symbol}-${ticker.dataSource || ticker.exchange}`}
+                       value={ticker.symbol}
+                       onSelect={() => handleSearchResultSelect(ticker)}
+                     >
+                       <div className="flex flex-col">
+                         <div className="flex items-center gap-2">
+                           <span className="font-medium">{ticker.longName || ticker.symbol}</span>
+                           <span className="text-muted-foreground text-xs">
+                             {ticker.symbol}
+                           </span>
+                         </div>
+                         <div className="flex items-center gap-1 text-xs">
+                           {ticker.exchange && (
+                             <span className="text-muted-foreground">{ticker.exchange}</span>
+                           )}
+                           {ticker.dataSource && (
+                             <>
+                               <span className="text-muted-foreground">•</span>
+                               <span className="text-primary/70 font-medium">
+                                 {getDataSourceLabel(ticker.dataSource, t)}
+                               </span>
+                             </>
+                           )}
+                         </div>
+                       </div>
+                       <Icons.Check
+                         className={cn(
+                           "ml-auto h-4 w-4",
+                           value === (ticker.longName || ticker.symbol)
+                             ? "opacity-100"
+                             : "opacity-0",
+                         )}
+                       />
+                     </CommandItem>
+                   ))}
+                 </CommandGroup>
+               )}
           </CommandList>
         </Command>
       </PopoverContent>

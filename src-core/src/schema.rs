@@ -183,6 +183,29 @@ diesel::table! {
 }
 
 diesel::table! {
+    vn_assets (id) {
+        id -> Text,
+        symbol -> Text,
+        name -> Text,
+        asset_type -> Text,
+        exchange -> Text,
+        currency -> Text,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    vn_assets_sync (id) {
+        id -> Text,
+        last_synced_at -> Nullable<Timestamp>,
+        sync_count -> Integer,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     vn_historical_records (id) {
         id -> Text,
         symbol -> Text,
@@ -222,5 +245,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     market_data_providers,
     platforms,
     quotes,
+    vn_assets,
+    vn_assets_sync,
     vn_historical_records,
 );

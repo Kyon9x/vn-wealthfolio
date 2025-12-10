@@ -15,10 +15,10 @@ export const OnboardingStep1: React.FC = () => {
 
         <div className="mx-auto grid gap-5 md:grid-cols-2 md:gap-6 lg:gap-8">
           <Card className="group border-border/50 from-card to-card/80 hover:border-primary/50 relative flex flex-col overflow-hidden border-2 bg-linear-to-br p-5 transition-all duration-300 hover:shadow-lg md:p-6">
-            <div className="absolute inset-0 bg-linear-to-br from-green-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             <div className="relative mb-4 flex items-center gap-3 md:mb-8">
-              <div className="rounded-lg bg-green-100 p-2.5 md:p-3 dark:bg-green-900/30">
-                <Icons.Holdings className="h-5 w-5 text-green-600 md:h-6 md:w-6 dark:text-green-400" />
+              <div className="rounded-lg bg-emerald-100 p-2.5 md:p-3 dark:bg-emerald-900/30">
+                <Icons.Holdings className="h-5 w-5 text-emerald-600 md:h-6 md:w-6 dark:text-emerald-400" />
               </div>
               <div>
                 <h3 className="text-lg font-bold md:text-xl">{t("step1.simpleTracking.title")}</h3>
@@ -30,21 +30,21 @@ export const OnboardingStep1: React.FC = () => {
 
             <div className="relative mb-4 flex-1 space-y-2.5 md:mb-8 md:space-y-4">
               <div className="flex items-center gap-2.5">
-                <Icons.Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <Icons.Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <p className="text-sm">{t("step1.simpleTracking.feature1")}</p>
               </div>
               <div className="flex items-center gap-2.5">
-                <Icons.Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <Icons.Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <p className="text-sm">{t("step1.simpleTracking.feature2")}</p>
               </div>
               <div className="flex items-center gap-2.5">
-                <Icons.Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <Icons.Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 <p className="text-sm">{t("step1.simpleTracking.feature3")}</p>
               </div>
             </div>
 
-            <div className="relative mt-auto rounded-md border border-green-200 bg-green-50 px-3 py-2.5 dark:border-green-800 dark:bg-green-900/20">
-              <p className="text-xs text-green-800 md:text-sm dark:text-green-200">
+            <div className="relative mt-auto rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 dark:border-emerald-800 dark:bg-emerald-900/20">
+              <p className="text-xs text-emerald-800 md:text-sm dark:text-emerald-200">
                 {t("step1.simpleTracking.note")}
               </p>
             </div>

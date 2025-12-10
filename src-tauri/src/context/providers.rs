@@ -16,6 +16,7 @@ use wealthvn_core::{
     settings::{settings_repository::SettingsRepository, SettingsService, SettingsServiceTrait},
     snapshot::{SnapshotRepository, SnapshotService},
     valuation::{ValuationRepository, ValuationService},
+    vn_market::VnAssetsSyncService,
     AssetRepository, AssetService,
 };
 
@@ -134,6 +135,8 @@ pub async fn initialize_context(
         holdings_valuation_service.clone(),
     ));
 
+    let vn_assets_sync_service = Arc::new(VnAssetsSyncService::new(pool.clone()));
+
     Ok(ServiceContext {
         base_currency,
         instance_id,
@@ -150,5 +153,6 @@ pub async fn initialize_context(
         snapshot_service,
         holdings_service,
         valuation_service,
+        vn_assets_sync_service,
     })
 }

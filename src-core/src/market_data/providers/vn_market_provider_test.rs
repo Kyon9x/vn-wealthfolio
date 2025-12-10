@@ -44,6 +44,37 @@ async fn test_vn_market_provider_search_ticker() {
 }
 
 #[tokio::test]
+async fn test_vn_market_provider_search_index() {
+    let provider = VnMarketProvider::new();
+
+    // Test searching for Vietnamese indices
+    let test_queries = vec!["VNINDEX", "vnindex", "HNXINDEX", "UPCOMINDEX"];
+    
+    for query in test_queries {
+        let results = provider.search_ticker(query).await;
+        
+        match results {
+            Ok(search_results) => {
+                if !search_results.is_empty() {
+                    println!("Found {} results for '{}'", search_results.len(), query);
+                    // Verify we get index results
+                    for summary in &search_results {
+                        assert!(!summary.symbol.is_empty());
+                        println!("Index search result: symbol={}, name={}, type={}", 
+                            summary.symbol, summary.short_name, summary.quote_type);
+                    }
+                } else {
+                    println!("No results for '{}' (may be expected)", query);
+                }
+            }
+            Err(e) => {
+                println!("Index search test error for '{}': {}", query, e);
+            }
+        }
+    }
+}
+
+#[tokio::test]
 async fn test_vn_market_provider_get_asset_profile() {
     let provider = VnMarketProvider::new();
 

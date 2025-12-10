@@ -11,11 +11,33 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DataSource } from "@/lib/constants";
 import { QuoteSummary } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+// Helper function to get display label for data source
+const getDataSourceLabel = (dataSource: string | undefined, t: any): string => {
+  if (!dataSource) return "";
+  switch (dataSource) {
+    case DataSource.YAHOO:
+      return t("settings:securities.form.dataSource.options.yahoo");
+    case DataSource.MANUAL:
+      return t("settings:securities.form.dataSource.options.manual");
+    case DataSource.MARKET_DATA_APP:
+      return t("settings:securities.form.dataSource.options.marketDataApp");
+    case DataSource.ALPHA_VANTAGE:
+      return t("settings:securities.form.dataSource.options.alphaVantage");
+    case DataSource.METAL_PRICE_API:
+      return t("settings:securities.form.dataSource.options.metalPriceApi");
+    case DataSource.VN_MARKET:
+      return t("settings:securities.form.dataSource.options.vnMarket");
+    default:
+      return dataSource;
+  }
+};
 
 const BENCHMARKS = [
   {
@@ -185,41 +207,51 @@ export function BenchmarkSymbolSelectorMobile({
             )}
 
             {/* Dynamic search results */}
-            {!isLoading &&
-              !isError &&
-              filteredSearchResults.length > 0 &&
-              searchQuery.length > 2 && (
-                <div className="mb-6">
-                  <h3 className="text-muted-foreground mb-3 text-sm font-medium">
-                    {t("benchmarkSelector.groups.searchResults")}
-                  </h3>
-                  <div className="space-y-2">
-                    {filteredSearchResults.slice(0, 8).map((ticker) => (
-                      <button
-                        key={ticker.symbol}
-                        onClick={() => handleSearchResultSelect(ticker)}
-                        className="hover:bg-accent active:bg-accent/80 focus:border-primary flex w-full items-center gap-3 rounded-lg border border-transparent p-3 text-left transition-colors focus:outline-none"
-                      >
-                        <div className="bg-primary/10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
-                          <Icons.TrendingUp className="text-primary h-5 w-5" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-foreground truncate font-medium">
-                              {ticker.longName || ticker.symbol}
-                            </span>
-                            <span className="text-muted-foreground text-xs">{ticker.symbol}</span>
-                          </div>
-                          {ticker.exchange && (
-                            <div className="text-muted-foreground text-sm">{ticker.exchange}</div>
-                          )}
-                        </div>
-                        <Icons.ChevronRight className="text-muted-foreground h-5 w-5 flex-shrink-0" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+             {!isLoading &&
+               !isError &&
+               filteredSearchResults.length > 0 &&
+               searchQuery.length > 2 && (
+                 <div className="mb-6">
+                   <h3 className="text-muted-foreground mb-3 text-sm font-medium">
+                     {t("benchmarkSelector.groups.searchResults")}
+                   </h3>
+                   <div className="space-y-2">
+                     {filteredSearchResults.slice(0, 8).map((ticker) => (
+                       <button
+                         key={`${ticker.symbol}-${ticker.dataSource || ticker.exchange}`}
+                         onClick={() => handleSearchResultSelect(ticker)}
+                         className="hover:bg-accent active:bg-accent/80 focus:border-primary flex w-full items-center gap-3 rounded-lg border border-transparent p-3 text-left transition-colors focus:outline-none"
+                       >
+                         <div className="bg-primary/10 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full">
+                           <Icons.TrendingUp className="text-primary h-5 w-5" />
+                         </div>
+                         <div className="min-w-0 flex-1">
+                           <div className="flex items-center gap-2">
+                             <span className="text-foreground truncate font-medium">
+                               {ticker.longName || ticker.symbol}
+                             </span>
+                             <span className="text-muted-foreground text-xs">{ticker.symbol}</span>
+                           </div>
+                           <div className="flex items-center gap-1 text-xs">
+                             {ticker.exchange && (
+                               <span className="text-muted-foreground">{ticker.exchange}</span>
+                             )}
+                             {ticker.dataSource && (
+                               <>
+                                 <span className="text-muted-foreground">•</span>
+                                 <span className="text-primary/70 font-medium">
+                                   {getDataSourceLabel(ticker.dataSource, t)}
+                                 </span>
+                               </>
+                             )}
+                           </div>
+                         </div>
+                         <Icons.ChevronRight className="text-muted-foreground h-5 w-5 flex-shrink-0" />
+                       </button>
+                     ))}
+                   </div>
+                 </div>
+               )}
 
             {/* Predefined benchmark groups */}
             {(searchQuery.length === 0 || !isLoading) && (

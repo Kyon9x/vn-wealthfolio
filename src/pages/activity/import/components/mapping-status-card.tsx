@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
 import { Icons } from "@/components/ui/icons";
 import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 // Status Card Component
@@ -28,7 +28,7 @@ export function MappingStatusCard({
       className={cn(
         "flex items-center gap-2 rounded-md border p-2",
         isComplete
-          ? "border-green-200 bg-green-50/50 dark:border-green-800/50 dark:bg-green-800/30"
+          ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800/50 dark:bg-emerald-800/30"
           : "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-800/30",
       )}
     >
@@ -36,7 +36,7 @@ export function MappingStatusCard({
         className={cn(
           "rounded-full p-1",
           isComplete
-            ? "bg-green-00 text-green-700 dark:bg-green-800/30 dark:text-green-400"
+            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-800/30 dark:text-emerald-400"
             : "bg-orange-100 text-red-700 dark:bg-red-800/30 dark:text-red-400",
         )}
       >
@@ -46,7 +46,7 @@ export function MappingStatusCard({
         <p
           className={cn(
             "text-sm font-medium",
-            isComplete ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400",
+            isComplete ? "text-emerald-700 dark:text-emerald-400" : "text-red-700 dark:text-red-400",
           )}
         >
           {title}
@@ -57,7 +57,7 @@ export function MappingStatusCard({
         </p>
       </div>
       {isComplete ? (
-        <Icons.CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />
+        <Icons.CheckCircle className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
       ) : (
         <Icons.AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400" />
       )}

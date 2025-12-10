@@ -1,4 +1,3 @@
-import { Column } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -7,6 +6,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Column } from "@tanstack/react-table";
 
 import { Icons } from "@/components/ui/icons";
 
@@ -33,20 +33,20 @@ export function DataTableColumnHeader<TData, TValue>({
           <Button variant="ghost" size="sm" className="data-[state=open]:bg-accent -ml-3 h-8">
             <span>{title}</span>
             {column.getIsSorted() === "desc" ? (
-              <Icons.ArrowDown className="ml-2 h-4 w-4" />
+              <Icons.ChevronDown className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "asc" ? (
-              <Icons.ArrowUp className="ml-2 h-4 w-4" />
+              <Icons.ChevronUp className="ml-2 h-4 w-4" />
             ) : // <Icons.ChevronsUpDown className="ml-2 h-4 w-4" />
             null}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem onClick={() => column.toggleSorting(false)}>
-            <Icons.ArrowUp className="text-muted-foreground/70 mr-2 h-3.5 w-3.5" />
+            <Icons.ChevronUp className="text-muted-foreground/70 mr-2 h-3.5 w-3.5" />
             Asc
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => column.toggleSorting(true)}>
-            <Icons.ArrowDown className="text-muted-foreground/70 mr-2 h-3.5 w-3.5" />
+            <Icons.ChevronDown className="text-muted-foreground/70 mr-2 h-3.5 w-3.5" />
             Desc
           </DropdownMenuItem>
           {!!column.getCanHide() && (

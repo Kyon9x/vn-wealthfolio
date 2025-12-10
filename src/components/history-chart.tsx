@@ -3,10 +3,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBalancePrivacy } from "@/hooks/use-balance-privacy";
 import { useDateFormatter } from "@/hooks/use-date-formatter";
 import { AmountDisplay } from "@wealthvn/ui";
-import { useState } from "react";
-import { Area, AreaChart, Tooltip, YAxis } from "recharts";
-import { useTranslation } from "react-i18next";
 import { parseISO } from "date-fns";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Area, AreaChart, Tooltip, YAxis } from "recharts";
 
 interface HistoryChartData {
   date: string;
@@ -66,7 +66,7 @@ const CustomTooltip = ({
 
       <div className="flex items-center justify-between space-x-2">
         <div className="flex items-center space-x-1.5">
-          <span className="block h-0.5 w-3" style={{ backgroundColor: "var(--success)" }} />
+          <span className="block h-0.5 w-3" style={{ backgroundColor: "var(--theme-brand)" }} />
           <span className="text-muted-foreground text-xs">{t("charts.totalValue")}:</span>
         </div>
         <AmountDisplay
@@ -137,15 +137,15 @@ export function HistoryChart({
       >
         <defs>
           <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--success)" stopOpacity={0.2} />
-            <stop offset="95%" stopColor="var(--success)" stopOpacity={0.1} />
+            <stop offset="5%" stopColor="var(--theme-brand)" stopOpacity={0.2} />
+            <stop offset="95%" stopColor="var(--theme-brand)" stopOpacity={0.1} />
           </linearGradient>
         </defs>
         <Tooltip
           position={{ y: -20 }}
           content={(props) => (
             <CustomTooltip
-              {...(props as TooltipBaseProps)}
+              {...(props as unknown as TooltipBaseProps)}
               isBalanceHidden={isBalanceHidden}
               isChartHovered={isChartHovered}
             />
@@ -159,7 +159,7 @@ export function HistoryChart({
           connectNulls={true}
           type="monotone"
           dataKey="totalValue"
-          stroke="var(--success)"
+          stroke="var(--theme-brand)"
           fillOpacity={1}
           fill="url(#colorUv)"
         />

@@ -12,6 +12,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
+use crate::vn_market::assets_repository::VnAssetsRepository;
 use crate::vn_market::cache::historical_cache::VnHistoricalCache;
 use crate::vn_market::cache::models::{CachedQuote, VnAssetType, VnHistoricalRecord};
 use crate::vn_market::cache::quote_cache::VnQuoteCache;
@@ -19,6 +20,11 @@ use crate::vn_market::clients::{FMarketClient, SjcClient, VciClient};
 use crate::vn_market::errors::VnMarketError;
 use crate::vn_market::models::gold::is_gold_symbol;
 use crate::vn_market::models::stock::map_index_symbol;
+
+/// Round a decimal to 2 decimal places
+fn round_price(price: Decimal) -> Decimal {
+    price.round_dp(2)
+}
 
 type DbPool = Pool<ConnectionManager<SqliteConnection>>;
 
@@ -34,6 +40,8 @@ pub struct VnMarketService {
     quote_cache: VnQuoteCache,
     /// SQLite-backed historical cache (optional)
     historical_cache: Option<VnHistoricalCache>,
+    /// Assets repository for market reference data cache
+    assets_repository: Option<VnAssetsRepository>,
     /// Fund symbol -> fund_id mapping
     fund_ids: Arc<RwLock<HashMap<String, i32>>>,
     /// Known fund symbols (for detection)
@@ -41,6 +49,18 @@ pub struct VnMarketService {
 }
 
 impl VnMarketService {
+    /// Round all price fields in a quote to 2 decimal places
+    fn round_quote(mut quote: CachedQuote) -> CachedQuote {
+        quote.open = round_price(quote.open);
+        quote.high = round_price(quote.high);
+        quote.low = round_price(quote.low);
+        quote.close = round_price(quote.close);
+        quote.nav = quote.nav.map(round_price);
+        quote.buy_price = quote.buy_price.map(round_price);
+        quote.sell_price = quote.sell_price.map(round_price);
+        quote
+    }
+
     /// Create a new VN Market Service without historical cache
     pub fn new() -> Self {
         Self {
@@ -49,6 +69,7 @@ impl VnMarketService {
             sjc_client: SjcClient::new(),
             quote_cache: VnQuoteCache::new(),
             historical_cache: None,
+            assets_repository: None,
             fund_ids: Arc::new(RwLock::new(HashMap::new())),
             known_funds: Arc::new(RwLock::new(Vec::new())),
         }
@@ -56,12 +77,15 @@ impl VnMarketService {
 
     /// Create a new VN Market Service with historical cache (DB-backed)
     pub fn with_pool(pool: DbPool) -> Self {
+        let pool_arc = Arc::new(pool.clone());
+        let assets_repo = VnAssetsRepository::new(pool_arc);
         Self {
             vci_client: VciClient::new(),
             fmarket_client: Arc::new(RwLock::new(FMarketClient::new())),
             sjc_client: SjcClient::new(),
             quote_cache: VnQuoteCache::new(),
             historical_cache: Some(VnHistoricalCache::new(pool)),
+            assets_repository: Some(assets_repo),
             fund_ids: Arc::new(RwLock::new(HashMap::new())),
             known_funds: Arc::new(RwLock::new(Vec::new())),
         }
@@ -136,7 +160,7 @@ impl VnMarketService {
 
         // Check cache first
         if let Some(cached) = self.quote_cache.get(symbol, asset_type).await {
-            return Ok(cached);
+            return Ok(Self::round_quote(cached));
         }
 
         // Fetch from appropriate client
@@ -146,10 +170,13 @@ impl VnMarketService {
             VnAssetType::Gold => self.fetch_gold_quote(symbol).await?,
         };
 
-        // Store in cache
-        self.quote_cache.set(quote.clone()).await;
+        // Round prices to 2 decimal places
+        let rounded_quote = Self::round_quote(quote.clone());
 
-        Ok(quote)
+        // Store original in cache (for consistency with other asset types)
+        self.quote_cache.set(quote).await;
+
+        Ok(rounded_quote)
     }
 
     /// Get historical quotes for a symbol
@@ -548,6 +575,7 @@ let record = VnHistoricalRecord::new(
         };
 
         self.fetch_gold_from_api(symbol, effective_start, end).await
+
     }
 
     /// Fetch gold data directly from SJC API
@@ -558,10 +586,6 @@ let record = VnHistoricalRecord::new(
         end: NaiveDate,
     ) -> Result<Vec<VnHistoricalRecord>, VnMarketError> {
         let quotes = self.sjc_client.get_history(start, end).await?;
-        
-        // Determine gold unit and conversion factor
-        let gold_unit = crate::vn_market::models::gold::GoldUnit::from_symbol(symbol);
-        let conversion_factor = gold_unit.conversion_factor();
         
         // Use normalized cache symbol (always store base Luong price)
         let cache_symbol = crate::vn_market::models::gold::normalize_gold_symbol(symbol);
@@ -586,27 +610,98 @@ let record = VnHistoricalRecord::new(
     }
 
     /// Search for assets by query
+    /// Search priority:
+    /// 1. Cached assets from vn_assets table
+    /// 2. Live API (VCI, FMarket)
+    /// 3. Vietnamese indices
+    /// 4. Gold symbols
     pub async fn search(&self, query: &str) -> Result<Vec<SearchResult>, VnMarketError> {
         let mut results = Vec::new();
+        let query_lower = query.to_lowercase();
 
+        // Step 0: Check for Vietnamese indices first
+        let indices = vec![
+            ("VNINDEX", "VN-Index", "HOSE"),
+            ("HNXINDEX", "HNX-Index", "HNX"),
+            ("UPCOMINDEX", "HNX-UpCom", "UPCOM"),
+        ];
+        
+        for (symbol, name, exchange) in indices {
+            if symbol.to_lowercase().contains(&query_lower)
+                || query_lower.contains(&symbol.to_lowercase())
+            {
+                if !results.iter().any(|r: &SearchResult| r.symbol == symbol) {
+                    results.push(SearchResult {
+                        symbol: symbol.to_string(),
+                        name: name.to_string(),
+                        asset_type: VnAssetType::Index,
+                        exchange: exchange.to_string(),
+                    });
+                }
+            }
+        }
+        
+        // If we found indices, return them (they're priority)
+        if !results.is_empty() {
+            return Ok(results);
+        }
+
+        // Step 1: Search cached assets from vn_assets table first
+        if let Some(ref assets_repo) = self.assets_repository {
+            if let Ok(cached_assets) = assets_repo.search(&query_lower) {
+                if !cached_assets.is_empty() {
+                    debug!("VN_MARKET: Found {} cached assets for query '{}'", cached_assets.len(), query_lower);
+                    
+                    // Convert cached results to SearchResult
+                    for asset in cached_assets {
+                        let asset_type = match asset.asset_type.as_str() {
+                            "Stock" => VnAssetType::Stock,
+                            "Fund" => VnAssetType::Fund,
+                            "Index" => VnAssetType::Index,
+                            _ => VnAssetType::Stock,
+                        };
+
+                        results.push(SearchResult {
+                            symbol: asset.symbol,
+                            name: asset.name,
+                            asset_type,
+                            exchange: asset.exchange,
+                        });
+                    }
+                    
+                    // If we found results in cache, return them immediately (cache-first strategy)
+                    // Don't bother with live API calls for small queries
+                    return Ok(results);
+                }
+            }
+        } else {
+            warn!("VN_MARKET: Asset repository not initialized! Cache search skipped.");
+        }
+
+        // Step 2: Only search live API if nothing found in cache
         // Search stocks from VCI
         let symbols = self.vci_client.get_all_symbols().await?;
-        let query_lower = query.to_lowercase();
 
         for symbol in symbols.iter().filter(|s| s.is_stock() && s.is_listed()) {
             let name_lower = symbol.display_name().to_lowercase();
             if symbol.symbol.to_lowercase().contains(&query_lower)
                 || name_lower.contains(&query_lower)
             {
-                results.push(SearchResult {
-                    symbol: symbol.symbol.clone(),
-                    name: symbol.display_name().to_string(),
-                    asset_type: VnAssetType::Stock,
-                    exchange: symbol.exchange().to_string(),
-                });
+                // Avoid duplicates
+                if !results
+                    .iter()
+                    .any(|r| r.symbol == symbol.symbol)
+                {
+                    results.push(SearchResult {
+                        symbol: symbol.symbol.clone(),
+                        name: symbol.display_name().to_string(),
+                        asset_type: VnAssetType::Stock,
+                        exchange: symbol.exchange().to_string(),
+                    });
 
-                if results.len() >= 20 {
-                    break;
+                    if results.len() >= 20 {
+                        return Ok(results);
+                    }
                 }
             }
         }
@@ -618,17 +713,27 @@ let record = VnHistoricalRecord::new(
                 if fund.short_name.to_lowercase().contains(&query_lower)
                     || fund.name.to_lowercase().contains(&query_lower)
                 {
-                    results.push(SearchResult {
-                        symbol: fund.short_name,
-                        name: fund.name,
-                        asset_type: VnAssetType::Fund,
-                        exchange: "FUND".to_string(),
-                    });
+                    // Avoid duplicates
+                    if !results
+                        .iter()
+                        .any(|r| r.symbol == fund.short_name)
+                    {
+                        results.push(SearchResult {
+                            symbol: fund.short_name,
+                            name: fund.name,
+                            asset_type: VnAssetType::Fund,
+                            exchange: "FUND".to_string(),
+                        });
+
+                        if results.len() >= 20 {
+                            return Ok(results);
+                        }
+                    }
                 }
             }
         }
 
-        // Add gold if query matches
+        // Step 3: Add gold if query matches
         if query_lower.contains("gold") || query_lower.contains("vàng") || query_lower == "sjc" {
             results.push(SearchResult {
                 symbol: "VN.GOLD".to_string(),
@@ -636,12 +741,14 @@ let record = VnHistoricalRecord::new(
                 asset_type: VnAssetType::Gold,
                 exchange: "SJC".to_string(),
             });
-            results.push(SearchResult {
-                symbol: "VN.GOLD.C".to_string(),
-                name: "Vàng VN (Chỉ)".to_string(),
-                asset_type: VnAssetType::Gold,
-                exchange: "SJC".to_string(),
-            });
+            if results.len() < 20 {
+                results.push(SearchResult {
+                    symbol: "VN.GOLD.C".to_string(),
+                    name: "Vàng VN (Chỉ)".to_string(),
+                    asset_type: VnAssetType::Gold,
+                    exchange: "SJC".to_string(),
+                });
+            }
         }
 
         Ok(results)
