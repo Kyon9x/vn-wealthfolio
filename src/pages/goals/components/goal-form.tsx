@@ -5,7 +5,7 @@ import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Icons, MoneyInput } from "@wealthvn/ui";
+import { Icons, MoneyInput, DatePickerInput } from "@wealthvn/ui";
 
 import {
   DialogDescription,
@@ -48,6 +48,8 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
       description: defaultValues?.description || "",
       targetAmount: defaultValues?.targetAmount || 0,
       targetReturnRate: defaultValues?.targetReturnRate,
+      dueDate: defaultValues?.dueDate,
+      monthlyInvestment: defaultValues?.monthlyInvestment,
       isAchieved: defaultValues?.isAchieved || false,
     },
   });
@@ -94,7 +96,7 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
             )}
           />
 
-          {/* Target Amount and Deadline - 2 Column Grid */}
+          {/* Target Amount and Due Date - 2 Column Grid */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -113,6 +115,23 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Due Date</FormLabel>
+                  <FormControl>
+                    <DatePickerInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      className="w-full"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* Investment Plan Section */}
@@ -125,6 +144,27 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
             </div>
 
             <div className="bg-muted/50 border-border space-y-4 rounded-lg border p-4">
+              {/* Monthly Investment (DCA) */}
+              <FormField
+                control={form.control}
+                name="monthlyInvestment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monthly Investment (DCA)</FormLabel>
+                    <FormControl>
+                      <MoneyInput
+                        placeholder="e.g., 1,000"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Regular monthly investment amount for Dollar Cost Averaging
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {/* Target Return Rate */}
               <FormField
                 control={form.control}

@@ -2,6 +2,7 @@ import { getGoals, getGoalsAllocation } from "@/commands/goal";
 import { useAccounts } from "@/hooks/use-accounts";
 import { QueryKeys } from "@/lib/query-keys";
 import type { Goal, GoalAllocation } from "@/lib/types";
+import { formatTimeRemaining } from "@/lib/date-utils";
 import { useQuery } from "@tanstack/react-query";
 import { Button, formatAmount, Icons, Page, Skeleton } from "@wealthvn/ui";
 import { useState } from "react";
@@ -164,10 +165,12 @@ export default function GoalDetailsPage() {
 
         <div className="space-y-4">
             <div className="bg-card border-border rounded-xl border p-4">
-                <div className="text-muted-foreground mb-1 text-xs">Monthly Contribution</div>
-                <div className="text-foreground font-mono text-xl font-bold">$1,250.00</div>
-                <div className="text-success mt-1 text-xs flex items-center">
-                    <Icons.TrendingUp className="mr-1 h-3 w-3" /> +5% vs last month
+                <div className="text-muted-foreground mb-1 text-xs">Monthly Investment (DCA)</div>
+                <div className="text-foreground font-mono text-xl font-bold">
+                  {goal.monthlyInvestment ? formatAmount(goal.monthlyInvestment, "USD", false) : "Not set"}
+                </div>
+                <div className="text-muted-foreground mt-1 text-xs">
+                  Regular monthly investment
                 </div>
             </div>
             <div className="bg-card border-border rounded-xl border p-4">
@@ -178,9 +181,11 @@ export default function GoalDetailsPage() {
                 </div>
             </div>
              <div className="bg-card border-border rounded-xl border p-4">
-                <div className="text-muted-foreground mb-1 text-xs">Time Remaining</div>
-                <div className="text-foreground font-mono text-xl font-bold">4 Years 2 Months</div>
-            </div>
+                 <div className="text-muted-foreground mb-1 text-xs">Time Remaining</div>
+                 <div className="text-foreground font-mono text-xl font-bold">
+                   {formatTimeRemaining(goal.dueDate)}
+                 </div>
+             </div>
         </div>
       </div>
 

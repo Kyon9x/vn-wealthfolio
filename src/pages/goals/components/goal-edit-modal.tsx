@@ -12,9 +12,10 @@ export function GoalEditModal({ goal, open, onClose }: GoalEditModalProps) {
   const defaultValues = {
     id: goal?.id || undefined,
     title: goal?.title || "",
+    description: goal?.description || "",
     targetAmount: goal?.targetAmount || 0,
-    deadline: goal?.deadline ? new Date(goal.deadline) : undefined,
-    monthlyContribution: goal?.monthlyContribution || undefined,
+    dueDate: goal?.dueDate ? new Date(goal.dueDate) : undefined,
+    monthlyInvestment: goal?.monthlyInvestment || undefined,
     targetReturnRate: goal?.targetReturnRate || undefined,
     isAchieved: goal?.isAchieved || false,
   };
