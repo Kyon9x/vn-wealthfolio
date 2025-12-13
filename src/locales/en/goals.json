@@ -23,6 +23,10 @@
         "label": "Goal Title",
         "placeholder": "e.g., Retirement, New House"
       },
+      "description": {
+        "label": "Description",
+        "placeholder": "Add notes about your goal (optional)"
+      },
       "targetAmount": {
         "label": "Target Amount",
         "placeholder": "0.00"
@@ -101,6 +105,7 @@
     },
     "overview": {
       "title": "Overview",
+      "description": "Description",
       "targetAmount": "Target Amount",
       "currentProgress": "Current Progress"
     },

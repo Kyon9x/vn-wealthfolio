@@ -23,6 +23,10 @@
         "label": "Tiêu đề mục tiêu",
         "placeholder": "ví dụ: Nghỉ hưu, Mua nhà mới"
       },
+      "description": {
+        "label": "Mô tả",
+        "placeholder": "Thêm ghi chú về mục tiêu của bạn (tùy chọn)"
+      },
       "targetAmount": {
         "label": "Số tiền mục tiêu",
         "placeholder": "0.00"
@@ -101,6 +105,7 @@
     },
     "overview": {
       "title": "Tổng quan",
+      "description": "Mô tả",
       "targetAmount": "Số tiền mục tiêu",
       "currentProgress": "Tiến độ hiện tại"
     },

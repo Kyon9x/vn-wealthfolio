@@ -34,23 +34,23 @@ const TIME_PERIOD_OPTIONS = [
 ];
 
 export default function GoalDetailsPage() {
-  const { t } = useTranslation("goals");
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+   const { t } = useTranslation("goals");
+   const { id } = useParams<{ id: string }>();
+   const navigate = useNavigate();
 
-  const { data: goals, isLoading: isGoalsLoading } = useQuery<Goal[], Error>({
-    queryKey: [QueryKeys.GOALS],
-    queryFn: getGoals,
-  });
+   const { data: goals, isLoading: isGoalsLoading } = useQuery<Goal[], Error>({
+     queryKey: [QueryKeys.GOALS],
+     queryFn: getGoals,
+   });
 
-  const { data: allocations, isLoading: isAllocationsLoading } = useQuery<GoalAllocation[], Error>({
-    queryKey: [QueryKeys.GOALS_ALLOCATIONS],
-    queryFn: getGoalsAllocation,
-  });
+   const { data: allocations, isLoading: isAllocationsLoading } = useQuery<GoalAllocation[], Error>({
+     queryKey: [QueryKeys.GOALS_ALLOCATIONS],
+     queryFn: getGoalsAllocation,
+   });
 
-  const { accounts } = useAccounts();
-  const [visibleModal, setVisibleModal] = useState(false);
-  const [timePeriod, setTimePeriod] = useState<TimePeriodOption>("months");
+   const { accounts } = useAccounts();
+   const [visibleModal, setVisibleModal] = useState(false);
+   const [timePeriod, setTimePeriod] = useState<TimePeriodOption>("months");
   const { saveAllocationsMutation } = useGoalMutations();
   const { getGoalProgress } = useGoalProgress(goals);
 
@@ -286,6 +286,24 @@ export default function GoalDetailsPage() {
                 <Icons.Goal className="text-primary h-6 w-6" />
               </div>
             </div>
+
+            {/* Description - if exists */}
+            {goal.description && (
+              <div className="pb-6 border-b border-border">
+                <p className="text-muted-foreground text-xs font-mono mb-2">{t("details.overview.description")}</p>
+                <div
+                  style={{
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }}
+                  className="text-foreground text-sm whitespace-pre-wrap"
+                >
+                  {goal.description}
+                </div>
+              </div>
+            )}
 
             {/* Metrics Grid - 2x2 */}
             <div className="grid grid-cols-2 gap-3">

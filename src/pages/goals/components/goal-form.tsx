@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { DatePickerInput, Icons, MoneyInput } from "@wealthvn/ui";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 import {
   DialogDescription,
@@ -151,6 +152,25 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
             )}
           />
 
+          {/* Description - Full Width */}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("form.fields.description.label")}</FormLabel>
+                <FormControl>
+                  <textarea
+                    placeholder={t("form.fields.description.placeholder")}
+                    className="flex min-h-24 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Target Amount - Full Width */}
           <FormField
             control={form.control}
@@ -176,19 +196,25 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
               name="startDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("form.fields.startDate.label")}</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <FormLabel className="cursor-help">{t("form.fields.startDate.label")}</FormLabel>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="start">
+                        <div className="max-w-xs">{t("form.fields.startDate.description")}</div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <FormControl>
-                    <DatePickerInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t("form.fields.startDate.description")}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                     <DatePickerInput
+                       value={field.value}
+                       onChange={field.onChange}
+                       className="w-full"
+                     />
+                   </FormControl>
+                   <FormMessage />
+                 </FormItem>
               )}
             />
 
@@ -197,19 +223,25 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
               name="dueDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("form.fields.dueDate.label")}</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <FormLabel className="cursor-help">{t("form.fields.dueDate.label")}</FormLabel>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="start">
+                        <div className="max-w-xs">{t("form.fields.dueDate.description")}</div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <FormControl>
-                    <DatePickerInput
-                      value={field.value}
-                      onChange={field.onChange}
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    {t("form.fields.dueDate.description")}
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                     <DatePickerInput
+                       value={field.value}
+                       onChange={field.onChange}
+                       className="w-full"
+                     />
+                   </FormControl>
+                   <FormMessage />
+                 </FormItem>
               )}
             />
           </div>
@@ -225,40 +257,46 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
 
             <div className="bg-muted/50 border-border space-y-4 rounded-lg border p-4">
               {/* Target Return Rate */}
-              <FormField
-                control={form.control}
-                name="targetReturnRate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t("form.fields.targetReturnRate.label")}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          placeholder={t("form.fields.targetReturnRate.placeholder")}
-                          value={field.value ?? ""}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === "" ? undefined : parseFloat(value));
-                          }}
-                          onBlur={field.onBlur}
-                          name={field.name}
-                          ref={field.ref}
-                          className="no-spinner pr-16"
-                        />
-                        <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">
-                          {t("form.fields.targetReturnRate.suffix")}
-                        </span>
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      {t("form.fields.targetReturnRate.hint")}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
+               <FormField
+                 control={form.control}
+                 name="targetReturnRate"
+                 render={({ field }) => (
+                   <FormItem>
+                     <TooltipProvider>
+                       <Tooltip delayDuration={300}>
+                         <TooltipTrigger asChild>
+                           <FormLabel className="cursor-help">{t("form.fields.targetReturnRate.label")}</FormLabel>
+                         </TooltipTrigger>
+                         <TooltipContent side="top" align="start">
+                           <div className="max-w-xs">{t("form.fields.targetReturnRate.hint")}</div>
+                         </TooltipContent>
+                       </Tooltip>
+                     </TooltipProvider>
+                     <FormControl>
+                       <div className="relative">
+                         <Input
+                           type="number"
+                           step="0.1"
+                           min="0"
+                           max="100"
+                           placeholder={t("form.fields.targetReturnRate.placeholder")}
+                           value={field.value ?? ""}
+                           onChange={(e) => {
+                             const value = e.target.value;
+                             field.onChange(value === "" ? undefined : parseFloat(value));
+                           }}
+                           onBlur={field.onBlur}
+                           name={field.name}
+                           ref={field.ref}
+                           className="no-spinner pr-16"
+                         />
+                         <span className="text-muted-foreground absolute right-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none">
+                           {t("form.fields.targetReturnRate.suffix")}
+                         </span>
+                       </div>
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
 
@@ -268,18 +306,24 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
                 name="monthlyInvestment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t("form.fields.monthlyInvestment.label")}</FormLabel>
+                    <TooltipProvider>
+                      <Tooltip delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <FormLabel className="cursor-help">{t("form.fields.monthlyInvestment.label")}</FormLabel>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="start">
+                          <div className="max-w-xs">{t("form.fields.monthlyInvestment.description")}</div>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <FormControl>
-                      <MoneyInput
-                        placeholder={t("form.fields.monthlyInvestment.placeholder")}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      {t("form.fields.monthlyInvestment.description")}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                       <MoneyInput
+                         placeholder={t("form.fields.monthlyInvestment.placeholder")}
+                         {...field}
+                       />
+                     </FormControl>
+                     <FormMessage />
+                   </FormItem>
                 )}
               />
             </div>

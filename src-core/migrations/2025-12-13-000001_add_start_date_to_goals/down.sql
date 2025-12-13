@@ -1,2 +1,0 @@
--- SQLite 3.35.0+ supports ALTER TABLE DROP COLUMN
--- For older versions, this would need a full table recreation
