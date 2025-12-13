@@ -111,6 +111,7 @@
   --flexoki-re: 3 62% 42%;
   --flexoki-gr: 73 84% 27%;
   --flexoki-ye: 45 99% 34%;
+  --flexoki-cy: 175 57% 33%;
 
   /* Shadcn tokens as full HSL colors */
   --background: hsl(var(--flexoki-bg));
@@ -143,8 +144,8 @@
   --chart-3: hsl(50 3% 42%);
   --chart-4: hsl(43 3% 52%);
   --chart-5: hsl(47 4% 61%);
-  --chart-projected: hsl(var(--flexoki-gr));
-  --chart-actual-on-track: hsl(181, 82%, 51%);
+  --chart-projected: hsl(var(--flexoki-cy));
+  --chart-actual-on-track: hsl(var(--flexoki-gr));
   --chart-actual-off-track: hsl(var(--flexoki-re));
 
   /* Sidebar (full hsl colors) */
@@ -193,8 +194,9 @@
    --flexoki-tx-2: 43 3% 52%;
    --flexoki-tx-3: 45 2% 33%;
    --flexoki-re: 5 61% 54%;
-   --flexoki-gr: 72 46% 41%;
+  --flexoki-gr: 72 46% 41%;
    --flexoki-ye: 45 82% 45%;
+   --flexoki-cy: 175 49% 45%;
 
    /* Dark chart palette (full hsl colors) */
    --chart-1: hsl(25 92% 72%);
@@ -202,7 +204,7 @@
    --chart-3: hsl(23 70% 51%);
    --chart-4: hsl(23 73% 46%);
    --chart-5: hsl(22 80% 41%);
-   --chart-projected: hsl(var(--flexoki-gr));
+   --chart-projected: hsl(var(--flexoki-cy));
    --chart-actual-on-track: hsl(var(--flexoki-gr));
    --chart-actual-off-track: hsl(var(--flexoki-re));
 
