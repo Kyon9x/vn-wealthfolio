@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Icons } from "@/components/ui/icons";
 
@@ -29,7 +29,7 @@ export interface GoalOperationsProps {
 }
 
 export function GoalOperations({ goal, onEdit, onDelete }: GoalOperationsProps) {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation("goals");
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   //const navigation = useNavigation();
   const isDeleting = false; //navigation?.formData?.get('intent') === 'delete';
@@ -43,31 +43,36 @@ export function GoalOperations({ goal, onEdit, onDelete }: GoalOperationsProps) 
       <DropdownMenu>
         <DropdownMenuTrigger className="hover:bg-muted flex h-8 w-8 items-center justify-center rounded-md border transition-colors">
           <Icons.MoreVertical className="h-4 w-4" />
-          <span className="sr-only">{t("goals.operations.openMenu")}</span>
+          <span className="sr-only">{t("operations.openMenu")}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onEdit(goal)}>
-            {t("goals.operations.edit")}
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.preventDefault();
+              onEdit(goal);
+            }}
+          >
+            {t("operations.edit")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive focus:text-destructive flex cursor-pointer items-center"
             onSelect={() => setShowDeleteAlert(true)}
           >
-            {t("goals.operations.delete")}
+            {t("operations.delete")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("goals.delete.title")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("goals.delete.description")}</AlertDialogDescription>
+            <AlertDialogTitle>{t("delete.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("delete.description")}</AlertDialogDescription>
           </AlertDialogHeader>
 
           <AlertDialogFooter>
             <input type="hidden" name="id" value={goal.id} />
-            <AlertDialogCancel>{t("goals.form.buttons.cancel")}</AlertDialogCancel>
+            <AlertDialogCancel>{t("form.buttons.cancel")}</AlertDialogCancel>
 
             <Button
               disabled={isDeleting}
@@ -79,7 +84,7 @@ export function GoalOperations({ goal, onEdit, onDelete }: GoalOperationsProps) 
               ) : (
                 <Icons.Trash className="mr-2 h-4 w-4" />
               )}
-              <span>{t("goals.delete.button")}</span>
+              <span>{t("delete.button")}</span>
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

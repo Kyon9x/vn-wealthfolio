@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import { Account, Goal, GoalAllocation } from "@/lib/types";
 import { formatAmount } from "@wealthvn/ui";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface GoalsAllocationsProps {
@@ -11,6 +11,7 @@ interface GoalsAllocationsProps {
   accounts: Account[];
   existingAllocations?: GoalAllocation[];
   onSubmit: (allocations: GoalAllocation[]) => void;
+  readOnly?: boolean;
 }
 
 const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
@@ -18,8 +19,9 @@ const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
   accounts,
   existingAllocations,
   onSubmit,
+  readOnly = false,
 }) => {
-  const { t } = useTranslation("settings");
+  const { t } = useTranslation("goals");
   const [allocations, setAllocations] = useState<GoalAllocation[]>(existingAllocations || []);
   const [totalAllocations, setTotalAllocations] = useState<Record<string, number>>({});
   const [isExceeding, setIsExceeding] = useState<boolean>(false);
@@ -64,7 +66,7 @@ const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
   const handleSubmit = () => {
     if (isExceeding) {
       toast({
-        title: t("goals.allocations.toast.errorTitle"),
+        title: t("allocations.toast.errorTitle"),
         className: "bg-red-500 text-white border-none",
       });
       return;
@@ -79,7 +81,7 @@ const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
           <thead>
             <tr>
               <th className="bg-muted sticky left-0 z-10 px-4 py-2 text-sm font-normal">
-                {t("goals.allocations.tableHeader")}
+                {t("allocations.tableHeader")}
               </th>
               {accounts.map((account) => (
                 <th key={account.id} className="border-l px-4 py-2 text-xs font-normal">
@@ -89,7 +91,7 @@ const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
             </tr>
             <tr>
               <td className="bg-muted text-muted-foreground sticky left-0 z-10 border-t border-r px-4 py-2 text-xs">
-                {t("goals.allocations.totalRow")}
+                {t("allocations.totalRow")}
               </td>
               {accounts.map((account) => (
                 <td
@@ -120,14 +122,15 @@ const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
                   );
                   return (
                     <td key={account.id} className="border-r px-1 py-0">
-                      <Input
-                        className="m-0 h-full w-full rounded-none border-none px-2 text-right text-xs"
-                        value={existingAllocation ? existingAllocation.percentAllocation : ""}
-                        onChange={(e) =>
-                          handleAllocationChange(goal.id, account.id, Number(e.target.value))
-                        }
-                      />
-                    </td>
+                       <Input
+                         className="m-0 h-full w-full rounded-none border-none px-2 text-right text-xs"
+                         value={existingAllocation ? existingAllocation.percentAllocation : ""}
+                         onChange={(e) =>
+                           handleAllocationChange(goal.id, account.id, Number(e.target.value))
+                         }
+                         disabled={readOnly}
+                       />
+                     </td>
                   );
                 })}
               </tr>
@@ -135,11 +138,13 @@ const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
           </tbody>
         </table>
       </div>
-      <div className="mt-4 text-right">
-        <Button onClick={handleSubmit} disabled={isExceeding}>
-          {t("goals.allocations.saveButton")}
-        </Button>
-      </div>
+      {!readOnly && (
+        <div className="mt-4 text-right">
+          <Button onClick={handleSubmit} disabled={isExceeding}>
+            {t("allocations.saveButton")}
+          </Button>
+        </div>
+      )}
     </>
   );
 };

@@ -46,6 +46,11 @@ export function useNavigation() {
         href: "/dashboard",
       },
       {
+        icon: <Icons.Goal className="size-6" />,
+        title: t("navigation.goals"),
+        href: "/goals",
+      },
+      {
         icon: <Icons.Holdings className="size-6" />,
         title: t("navigation.holdings"),
         href: "/holdings",

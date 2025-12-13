@@ -115,6 +115,10 @@ diesel::table! {
         description -> Nullable<Text>,
         target_amount -> Double,
         is_achieved -> Bool,
+        target_return_rate -> Nullable<Double>,
+        due_date -> Nullable<Text>,
+        monthly_investment -> Nullable<Double>,
+        start_date -> Nullable<Text>,
     }
 }
 
@@ -184,7 +188,7 @@ diesel::table! {
 
 diesel::table! {
     vn_assets (id) {
-        id -> Text,
+        id -> Nullable<Text>,
         symbol -> Text,
         name -> Text,
         asset_type -> Text,
@@ -197,9 +201,9 @@ diesel::table! {
 
 diesel::table! {
     vn_assets_sync (id) {
-        id -> Text,
+        id -> Nullable<Text>,
         last_synced_at -> Nullable<Timestamp>,
-        sync_count -> Integer,
+        sync_count -> Nullable<Integer>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -232,20 +236,4 @@ diesel::joinable!(goals_allocation -> goals (goal_id));
 diesel::joinable!(quotes -> assets (symbol));
 
 diesel::allow_tables_to_appear_in_same_query!(
-    accounts,
-    activities,
-    activity_import_profiles,
-    app_settings,
-    assets,
-    contribution_limits,
-    daily_account_valuation,
-    goals,
-    goals_allocation,
-    holdings_snapshots,
-    market_data_providers,
-    platforms,
-    quotes,
-    vn_assets,
-    vn_assets_sync,
-    vn_historical_records,
-);
+    accounts,activities,activity_import_profiles,app_settings,assets,contribution_limits,daily_account_valuation,goals,goals_allocation,holdings_snapshots,market_data_providers,platforms,quotes,vn_assets,vn_assets_sync,vn_historical_records,);

@@ -1,10 +1,15 @@
-import z from "zod";
-import { Goal, GoalAllocation } from "@/lib/types";
+import { getRunEnv, invokeTauri, invokeWeb, logger, RUN_ENV } from "@/adapters";
 import { newGoalSchema } from "@/lib/schemas";
-import { getRunEnv, RUN_ENV, invokeTauri, invokeWeb } from "@/adapters";
-import { logger } from "@/adapters";
+import { Goal, GoalAllocation } from "@/lib/types";
+import z from "zod";
 
-type NewGoal = z.infer<typeof newGoalSchema>;
+// Form schema type (uses Date for date fields)
+type NewGoalForm = z.infer<typeof newGoalSchema>;
+
+// API input type (uses string for date fields, matching the backend)
+export type NewGoalInput = Omit<NewGoalForm, "deadline"> & {
+  deadline?: string;
+};
 
 export const getGoals = async (): Promise<Goal[]> => {
   try {
@@ -22,7 +27,7 @@ export const getGoals = async (): Promise<Goal[]> => {
   }
 };
 
-export const createGoal = async (goal: NewGoal): Promise<Goal> => {
+export const createGoal = async (goal: NewGoalInput): Promise<Goal> => {
   const newGoal = {
     ...goal,
     yearlyContribution: 0,

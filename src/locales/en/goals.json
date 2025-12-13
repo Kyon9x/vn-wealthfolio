@@ -1,12 +1,67 @@
 {
   "title": "Goals",
-  "addGoal": "Add Goal",
+  "description": "Manage your financial goals and track your progress",
+  "addButton": "Add Goal",
+  "addGoalButton": "Add Goal",
+  "goalsHeading": "Your Goals",
+  "allocationsHeading": "Allocations",
+  "allocationsDescription": "Allocate your portfolio across different accounts to achieve your goals",
+  "notFound": "Goal not found",
+  "backToGoals": "Back to Goals",
   "form": {
     "title": "Goal Title",
     "description": "Description",
     "targetAmount": "Target Amount",
     "currentAmount": "Current Amount",
-    "targetDate": "Target Date"
+    "targetDate": "Target Date",
+    "addTitle": "Add Goal",
+    "updateTitle": "Edit Goal",
+    "addDescription": "Create a new financial goal to track.",
+    "updateDescription": "Update your goal details.",
+    "fields": {
+      "title": {
+        "label": "Goal Title",
+        "placeholder": "e.g., Retirement, New House"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Add notes about your goal (optional)"
+      },
+      "targetAmount": {
+        "label": "Target Amount",
+        "placeholder": "0.00"
+      },
+      "startDate": {
+        "label": "Start Date",
+        "description": "When you started or plan to start this goal"
+      },
+      "dueDate": {
+        "label": "Due Date",
+        "description": "Target date to achieve your goal"
+      },
+      "investmentPlan": {
+        "title": "Investment Plan"
+      },
+      "monthlyInvestment": {
+        "label": "Monthly Investment (DCA)",
+        "placeholder": "e.g., 1,000",
+        "description": "Regular monthly investment amount for Dollar Cost Averaging"
+      },
+      "targetReturnRate": {
+        "label": "Target Return Rate",
+        "placeholder": "0",
+        "suffix": "% / year",
+        "hint": "Expected annual return rate for projection"
+      },
+      "isAchieved": {
+        "label": "Mark as Achieved"
+      }
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "add": "Add Goal",
+      "update": "Update Goal"
+    }
   },
   "progress": {
     "title": "Progress",
@@ -17,5 +72,63 @@
   "empty": {
     "title": "No goals yet",
     "description": "Set financial goals to track your progress"
+  },
+  "allocations": {
+    "tableHeader": "Account",
+    "totalRow": "Total",
+    "saveButton": "Save Allocations",
+    "toast": {
+      "errorTitle": "Total allocation cannot exceed 100%"
+    }
+  },
+  "operations": {
+    "openMenu": "Open menu",
+    "edit": "Edit",
+    "delete": "Delete"
+  },
+  "delete": {
+    "title": "Are you sure?",
+    "description": "This action cannot be undone. This will permanently delete your goal and remove your data from our servers.",
+    "button": "Delete"
+  },
+  "details": {
+    "title": "Goals Detail: {{title}}",
+    "description": "Review progress and configure your \"{{title}}\" investment goal.",
+    "editGoal": "Edit Goal",
+    "back": "Back",
+    "chart": {
+      "growthProjection": "Growth Projection",
+      "noData": "No data available",
+      "noDataDescription": "Add allocations to see growth projection",
+      "projectedGrowth": "Projected Growth",
+      "actualValue": "Actual Value"
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Description",
+      "targetAmount": "Target Amount",
+      "currentProgress": "Current Progress"
+    },
+    "metrics": {
+      "monthlyInvestment": "Monthly Investment",
+      "monthlyInvestmentDCA": "Monthly Investment (DCA)",
+      "notSet": "Not set",
+      "targetReturnRate": "Target Return Rate",
+      "timeRemaining": "Time Remaining",
+      "projectedFutureValue": "Projected Future Value"
+    },
+    "allocations": {
+      "title": "Allocations",
+      "description": "View current allocation percentages for this goal across accounts."
+    }
+  },
+  "item": {
+    "done": "Done",
+    "onTrack": "On track",
+    "offTrack": "Off track",
+    "completed": "Completed",
+    "ongoing": "Ongoing",
+    "current": "Current",
+    "target": "Target"
   }
 }

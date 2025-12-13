@@ -1,12 +1,67 @@
 {
   "title": "Mục tiêu",
-  "addGoal": "Thêm mục tiêu",
+  "description": "Quản lý các mục tiêu tài chính và theo dõi tiến độ của bạn",
+  "addButton": "Thêm mục tiêu",
+  "addGoalButton": "Thêm mục tiêu",
+  "goalsHeading": "Mục tiêu của bạn",
+  "allocationsHeading": "Phân bổ",
+  "allocationsDescription": "Phân bổ danh mục đầu tư của bạn qua các tài khoản khác nhau để đạt được mục tiêu",
+  "notFound": "Không tìm thấy mục tiêu",
+  "backToGoals": "Quay lại Mục tiêu",
   "form": {
     "title": "Tiêu đề mục tiêu",
     "description": "Mô tả",
     "targetAmount": "Số tiền mục tiêu",
     "currentAmount": "Số tiền hiện tại",
-    "targetDate": "Ngày mục tiêu"
+    "targetDate": "Ngày mục tiêu",
+    "addTitle": "Thêm mục tiêu",
+    "updateTitle": "Chỉnh sửa mục tiêu",
+    "addDescription": "Tạo một mục tiêu tài chính mới để theo dõi.",
+    "updateDescription": "Cập nhật chi tiết mục tiêu của bạn.",
+    "fields": {
+      "title": {
+        "label": "Tiêu đề mục tiêu",
+        "placeholder": "ví dụ: Nghỉ hưu, Mua nhà mới"
+      },
+      "description": {
+        "label": "Mô tả",
+        "placeholder": "Thêm ghi chú về mục tiêu của bạn (tùy chọn)"
+      },
+      "targetAmount": {
+        "label": "Số tiền mục tiêu",
+        "placeholder": "0.00"
+      },
+      "startDate": {
+        "label": "Ngày bắt đầu",
+        "description": "Khi bạn bắt đầu hoặc dự định bắt đầu mục tiêu này"
+      },
+      "dueDate": {
+        "label": "Ngày đến hạn",
+        "description": "Ngày mục tiêu để đạt được mục tiêu của bạn"
+      },
+      "investmentPlan": {
+        "title": "Kế hoạch đầu tư"
+      },
+      "monthlyInvestment": {
+        "label": "Đầu tư hàng tháng (DCA)",
+        "placeholder": "ví dụ: 1,000",
+        "description": "Số tiền đầu tư hàng tháng đều đặn cho Trung bình giá (DCA)"
+      },
+      "targetReturnRate": {
+        "label": "Tỷ suất sinh lời mục tiêu",
+        "placeholder": "0",
+        "suffix": "% / năm",
+        "hint": "Tỷ suất sinh lời hàng năm kỳ vọng cho dự phóng"
+      },
+      "isAchieved": {
+        "label": "Đánh dấu là đã đạt được"
+      }
+    },
+    "buttons": {
+      "cancel": "Hủy",
+      "add": "Thêm mục tiêu",
+      "update": "Cập nhật mục tiêu"
+    }
   },
   "progress": {
     "title": "Tiến độ",
@@ -17,5 +72,63 @@
   "empty": {
     "title": "Chưa có mục tiêu nào",
     "description": "Đặt mục tiêu tài chính để theo dõi tiến độ của bạn"
+  },
+  "allocations": {
+    "tableHeader": "Tài khoản",
+    "totalRow": "Tổng cộng",
+    "saveButton": "Lưu phân bổ",
+    "toast": {
+      "errorTitle": "Tổng phân bổ không được vượt quá 100%"
+    }
+  },
+  "operations": {
+    "openMenu": "Mở menu",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa"
+  },
+  "delete": {
+    "title": "Bạn có chắc chắn không?",
+    "description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn mục tiêu của bạn và xóa dữ liệu của bạn khỏi máy chủ của chúng tôi.",
+    "button": "Xóa"
+  },
+  "details": {
+    "title": "Chi tiết mục tiêu: {{title}}",
+    "description": "Xem lại tiến độ và cấu hình mục tiêu đầu tư \"{{title}}\" của bạn.",
+    "editGoal": "Chỉnh sửa mục tiêu",
+    "back": "Quay lại",
+    "chart": {
+      "growthProjection": "Dự phóng tăng trưởng",
+      "noData": "Không có dữ liệu",
+      "noDataDescription": "Thêm phân bổ để xem dự phóng tăng trưởng",
+      "projectedGrowth": "Tăng trưởng dự phóng",
+      "actualValue": "Giá trị thực tế"
+    },
+    "overview": {
+      "title": "Tổng quan",
+      "description": "Mô tả",
+      "targetAmount": "Số tiền mục tiêu",
+      "currentProgress": "Tiến độ hiện tại"
+    },
+    "metrics": {
+      "monthlyInvestment": "Đầu tư hàng tháng",
+      "monthlyInvestmentDCA": "Đầu tư hàng tháng (DCA)",
+      "notSet": "Chưa thiết lập",
+      "targetReturnRate": "Tỷ suất sinh lời mục tiêu",
+      "timeRemaining": "Thời gian còn lại",
+      "projectedFutureValue": "Giá trị tương lai dự phóng"
+    },
+    "allocations": {
+      "title": "Phân bổ",
+      "description": "Xem tỷ lệ phân bổ hiện tại cho mục tiêu này trên các tài khoản."
+    }
+  },
+  "item": {
+    "done": "Xong",
+    "onTrack": "Đúng tiến độ",
+    "offTrack": "Chậm tiến độ",
+    "completed": "Đã hoàn thành",
+    "ongoing": "Đang thực hiện",
+    "current": "Hiện tại",
+    "target": "Mục tiêu"
   }
 }
