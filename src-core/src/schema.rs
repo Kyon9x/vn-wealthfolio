@@ -118,6 +118,7 @@ diesel::table! {
         target_return_rate -> Nullable<Double>,
         due_date -> Nullable<Text>,
         monthly_investment -> Nullable<Double>,
+        start_date -> Nullable<Text>,
     }
 }
 
@@ -187,7 +188,7 @@ diesel::table! {
 
 diesel::table! {
     vn_assets (id) {
-        id -> Text,
+        id -> Nullable<Text>,
         symbol -> Text,
         name -> Text,
         asset_type -> Text,
@@ -200,9 +201,9 @@ diesel::table! {
 
 diesel::table! {
     vn_assets_sync (id) {
-        id -> Text,
+        id -> Nullable<Text>,
         last_synced_at -> Nullable<Timestamp>,
-        sync_count -> Integer,
+        sync_count -> Nullable<Integer>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }

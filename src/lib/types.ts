@@ -367,6 +367,7 @@ export interface Goal {
   isAchieved?: boolean;
   dueDate?: string;
   monthlyInvestment?: number;
+  startDate?: string;
   allocations?: GoalAllocation[];
 }
 

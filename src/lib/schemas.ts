@@ -52,6 +52,7 @@ export const newGoalSchema = z.object({
     .min(0, { message: "Return rate must be a positive number." })
     .max(100, { message: "Return rate cannot exceed 100%." })
     .optional(),
+  startDate: z.union([z.date(), z.string().datetime()]).optional(),
   dueDate: z.union([z.date(), z.string().datetime()]).optional(),
   monthlyInvestment: z.coerce
     .number({

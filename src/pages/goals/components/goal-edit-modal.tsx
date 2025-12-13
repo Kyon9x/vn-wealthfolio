@@ -14,6 +14,7 @@ export function GoalEditModal({ goal, open, onClose }: GoalEditModalProps) {
     title: goal?.title || "",
     description: goal?.description || "",
     targetAmount: goal?.targetAmount || 0,
+    startDate: goal?.startDate ? new Date(goal.startDate) : undefined,
     dueDate: goal?.dueDate ? new Date(goal.dueDate) : undefined,
     monthlyInvestment: goal?.monthlyInvestment || undefined,
     targetReturnRate: goal?.targetReturnRate || undefined,

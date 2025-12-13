@@ -27,6 +27,7 @@ pub struct Goal {
     pub target_return_rate: Option<f64>,
     pub due_date: Option<String>,
     pub monthly_investment: Option<f64>,
+    pub start_date: Option<String>,
 }
 
 #[derive(Insertable, Serialize, Deserialize, Debug, Clone)]
@@ -41,6 +42,7 @@ pub struct NewGoal {
     pub target_return_rate: Option<f64>,
     pub due_date: Option<String>,
     pub monthly_investment: Option<f64>,
+    pub start_date: Option<String>,
 }
 
 #[derive(

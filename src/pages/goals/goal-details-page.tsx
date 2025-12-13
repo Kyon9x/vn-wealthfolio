@@ -1,5 +1,5 @@
-import { MetricDisplay } from "@/components/metric-display";
 import { getGoals, getGoalsAllocation } from "@/commands/goal";
+import { MetricDisplay } from "@/components/metric-display";
 import { useAccounts } from "@/hooks/use-accounts";
 import { formatTimeRemaining } from "@/lib/date-utils";
 import { QueryKeys } from "@/lib/query-keys";
@@ -7,8 +7,8 @@ import type { Goal, GoalAllocation } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatedToggleGroup, Button, formatAmount, Icons, Page, Skeleton } from "@wealthvn/ui";
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Area,
   AreaChart,
@@ -21,10 +21,10 @@ import {
 } from "recharts";
 import GoalsAllocations from "./components/goal-allocations";
 import { GoalEditModal } from "./components/goal-edit-modal";
+import { isGoalOnTrack } from "./lib/goal-utils";
 import { useGoalMutations } from "./use-goal-mutations";
 import { useGoalProgress } from "./use-goal-progress";
 import { TimePeriodOption, useGoalValuationHistory } from "./use-goal-valuation-history";
-import { isGoalOnTrack } from "./lib/goal-utils";
 
 const TIME_PERIOD_OPTIONS = [
   { value: "months" as const, label: "Months" },
@@ -32,7 +32,7 @@ const TIME_PERIOD_OPTIONS = [
 ];
 
 export default function GoalDetailsPage() {
-  const { t } = useTranslation("goals");
+  useTranslation("goals");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 

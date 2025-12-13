@@ -265,6 +265,10 @@
   --sidebar-border: #e2e8f0;
   --sidebar-ring: #10b981;
 
+  --chart-projected: hsl(200 80% 40%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
+
   /* Toast styles */
   --toast-bg: #ffffff;
   --toast-fg: #0f172a;
@@ -311,6 +315,9 @@
   --warning-foreground: #020617;
 
   --chart-1: #34d399; --chart-2: #2dd4bf; --chart-3: #fbbf24; --chart-4: #f87171; --chart-5: #60a5fa;
+  --chart-projected: hsl(200 80% 60%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
 
   --sidebar: #020617;
   --sidebar-foreground: #f8fafc;
@@ -377,6 +384,10 @@
   --sidebar-border: #bae6fd;
   --sidebar-ring: #2563eb;
 
+  --chart-projected: hsl(260 60% 60%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
+
   /* Toast styles */
   --toast-bg: #ffffff;
   --toast-fg: #1e3a8a;
@@ -423,6 +434,9 @@
   --warning-foreground: #020617;
 
   --chart-1: #3b82f6; --chart-2: #60a5fa; --chart-3: #93c5fd; --chart-4: #2563eb; --chart-5: #1d4ed8;
+  --chart-projected: hsl(260 80% 70%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
 
   --sidebar: #0b1120;
   --sidebar-foreground: #f1f5f9;
@@ -489,6 +503,10 @@
   --sidebar-border: #fde68a;
   --sidebar-ring: #f59e0b;
 
+  --chart-projected: hsl(200 60% 40%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
+
   --theme-brand: var(--primary);
 
   /* Toast styles */
@@ -535,6 +553,9 @@
   --warning-foreground: #1c1917;
 
   --chart-1: #fbbf24; --chart-2: #f59e0b; --chart-3: #ea580c; --chart-4: #c2410c; --chart-5: #9a3412;
+  --chart-projected: hsl(200 60% 60%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
 
   --sidebar: #1c1917;
   --sidebar-foreground: #fafaf9;
@@ -601,6 +622,10 @@
   --sidebar-border: #e4e4e7;
   --sidebar-ring: #18181b;
 
+  --chart-projected: hsl(0 0% 40%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
+
   --theme-brand: var(--primary);
 
   /* Toast styles */
@@ -647,6 +672,9 @@
   --warning-foreground: #000000;
 
   --chart-1: #ffffff; --chart-2: #a1a1aa; --chart-3: #52525b; --chart-4: #3f3f46; --chart-5: #27272a;
+  --chart-projected: hsl(0 0% 70%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
 
   --sidebar: #000000;
   --sidebar-foreground: #ffffff;
@@ -713,6 +741,10 @@
   --sidebar-border: #fecdd3;
   --sidebar-ring: #e11d48;
 
+  --chart-projected: hsl(200 50% 40%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
+
   --theme-brand: var(--primary);
 
   /* Toast styles */
@@ -759,6 +791,9 @@
   --warning-foreground: #4c0519;
 
   --chart-1: #fb7185; --chart-2: #f43f5e; --chart-3: #e11d48; --chart-4: #be123c; --chart-5: #9f1239;
+  --chart-projected: hsl(200 50% 60%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
 
   --sidebar: #0f0505;
   --sidebar-foreground: #fff1f2;
@@ -826,6 +861,10 @@
   --sidebar-border: #000000;
   --sidebar-ring: #65a30d;
 
+  --chart-projected: hsl(280 100% 60%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
+
   --theme-brand: var(--primary);
 
   /* Toast styles */
@@ -871,6 +910,9 @@
   --warning-foreground: #000000;
 
   --chart-1: #a3e635; --chart-2: #22c55e; --chart-3: #10b981; --chart-4: #bef264; --chart-5: #84cc16;
+  --chart-projected: hsl(280 100% 70%);
+  --chart-actual-on-track: var(--success);
+  --chart-actual-off-track: var(--destructive);
 
   --sidebar: #000000;
   --sidebar-foreground: #a3e635;

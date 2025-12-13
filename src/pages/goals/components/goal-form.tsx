@@ -5,7 +5,7 @@ import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Icons, MoneyInput, DatePickerInput } from "@wealthvn/ui";
+import { DatePickerInput, Icons, MoneyInput } from "@wealthvn/ui";
 
 import {
   DialogDescription,
@@ -48,6 +48,7 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
       description: defaultValues?.description || "",
       targetAmount: defaultValues?.targetAmount || 0,
       targetReturnRate: defaultValues?.targetReturnRate,
+      startDate: defaultValues?.startDate,
       dueDate: defaultValues?.dueDate,
       monthlyInvestment: defaultValues?.monthlyInvestment,
       isAchieved: defaultValues?.isAchieved || false,
@@ -55,11 +56,17 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
   });
 
   function onSubmit(data: NewGoal) {
-    const { id, ...rest } = data;
-    if (id) {
-      return updateGoalMutation.mutate({ id, ...rest }, { onSuccess });
+    const { startDate, dueDate, ...rest } = data;
+    // Convert dates to ISO strings for the backend
+    const payload = {
+      ...rest,
+      startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
+      dueDate: dueDate instanceof Date ? dueDate.toISOString() : dueDate,
+    };
+    if (rest.id) {
+      return updateGoalMutation.mutate(payload as any, { onSuccess });
     }
-    return addGoalMutation.mutate(rest, { onSuccess });
+    return addGoalMutation.mutate(payload, { onSuccess });
   }
 
   return (
@@ -96,20 +103,42 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
             )}
           />
 
-          {/* Target Amount and Due Date - 2 Column Grid */}
+          {/* Target Amount - Full Width */}
+          <FormField
+            control={form.control}
+            name="targetAmount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("goals.form.fields.targetAmount.label")}</FormLabel>
+                <FormControl>
+                  <MoneyInput
+                    placeholder={t("goals.form.fields.targetAmount.placeholder")}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Start Date and Due Date - 2 Column Grid */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="targetAmount"
+              name="startDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("goals.form.fields.targetAmount.label")}</FormLabel>
+                  <FormLabel>Start Date</FormLabel>
                   <FormControl>
-                    <MoneyInput
-                      placeholder={t("goals.form.fields.targetAmount.placeholder")}
-                      {...field}
+                    <DatePickerInput
+                      value={field.value}
+                      onChange={field.onChange}
+                      className="w-full"
                     />
                   </FormControl>
+                  <FormDescription>
+                    When you started or plan to start this goal
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -128,6 +157,9 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
                       className="w-full"
                     />
                   </FormControl>
+                  <FormDescription>
+                    Target date to achieve your goal
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
