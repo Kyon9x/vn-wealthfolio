@@ -5,6 +5,7 @@ import { QueryKeys } from "@/lib/query-keys";
 import type { AccountValuation, Goal, GoalAllocation } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { parseISO } from "date-fns";
 import { isGoalOnTrack } from "./lib/goal-utils";
 
 interface GoalProgress {
@@ -96,18 +97,30 @@ export function useGoalProgress(goals: Goal[] | undefined) {
         ? Math.min((currentValue / goal.targetAmount) * 100, 100)
         : 0;
 
-      // Calculate projected value at today's date
-      // Assume goal started 1 year ago (or from allocations data)
+      // Calculate projected value at today's date based on goal start
       const monthlyInvestment = goal.monthlyInvestment ?? 0;
       const annualReturnRate = goal.targetReturnRate ?? 0;
       
-      // Use current value as start value for projection
-      // This represents where we are now, projecting from this point
+      // Calculate months from goal start to today
+      let monthsFromStart = 0;
+      if (goal.startDate) {
+        const goalStartDate = parseISO(goal.startDate);
+        const today = new Date();
+        const yearDiff = today.getFullYear() - goalStartDate.getFullYear();
+        const monthDiff = today.getMonth() - goalStartDate.getMonth();
+        const daysDiff = today.getDate() - goalStartDate.getDate();
+        monthsFromStart = yearDiff * 12 + monthDiff + daysDiff / 30;
+      }
+      
+      // Get initial value at goal start (0 if future goal)
+      // For now, assume we started with 0 and calculated current value from contributions
+      const startValue = 0;
+      
       const projectedValue = calculateProjectedValue(
-        currentValue,
+        startValue,
         monthlyInvestment,
         annualReturnRate,
-        0, // 0 months from start = today
+        Math.max(0, monthsFromStart),
       );
 
       progressMap.set(goal.id, {

@@ -86,9 +86,19 @@ export default function GoalDetailsPage() {
   const projectedFutureValue = chartData.length > 0 ? chartData[chartData.length - 1]?.projected ?? 0 : 0;
 
   // Get projected value at today's date for on-track determination
-  const today = new Date().toISOString().split("T")[0];
-  const todayChartData = chartData.find((d) => d.date === today);
-  const projectedValueToday = todayChartData?.projected ?? currentAmount;
+  // Find the closest data point to today (since we use end-of-period dates)
+  const today = new Date();
+  const todayDateStr = today.toISOString().split("T")[0];
+  let projectedValueToday = currentAmount;
+  
+  if (chartData.length > 0) {
+    // Find the first data point that is today or in the future
+    const nextDataPoint = chartData.find((d) => {
+      const dataDate = new Date(d.date);
+      return dataDate >= today;
+    });
+    projectedValueToday = nextDataPoint?.projected ?? projectedFutureValue;
+  }
 
   // Determine if goal is on track: currentAmount >= projectedValueToday
   const onTrack = isGoalOnTrack(currentAmount, projectedValueToday);
