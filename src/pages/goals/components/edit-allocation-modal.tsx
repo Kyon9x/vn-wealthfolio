@@ -258,7 +258,7 @@ export function EditAllocationModal({
                     Initial Contribution
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">
-                    Allocation (%)
+                    Allocated Percent
                   </th>
                 </tr>
               </thead>

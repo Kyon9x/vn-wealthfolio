@@ -16,10 +16,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDateFormatter } from "@/hooks/use-date-formatter";
+import { useSettingsContext } from "@/lib/settings-provider";
 import { Account, AllocationVersion, GoalAllocation } from "@/lib/types";
 import { invoke } from "@tauri-apps/api/core";
 import { Icons } from "@wealthvn/ui";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AllocationModal } from "./allocation-modal";
 
@@ -48,8 +49,33 @@ export function AllocationHistoryTable({
   const [editingAllocationId, setEditingAllocationId] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [allocationToDelete, setAllocationToDelete] = useState<GoalAllocation | null>(null);
+  const [allocationToReset, setAllocationToReset] = useState<GoalAllocation | null>(null);
   const { formatActivityDate } = useDateFormatter();
   const { t } = useTranslation("goals");
+  const { settings } = useSettingsContext();
+
+  const { currencySymbol, formatCurrency } = useMemo(() => {
+    const currency = settings?.baseCurrency || "USD";
+    const formatter = new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      currencyDisplay: "narrowSymbol",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    const parts = formatter.formatToParts(0);
+    const symbolPart = parts.find((part) => part.type === "currency");
+    const symbol = symbolPart?.value ?? "$";
+
+    const formatValue = (value: number) => {
+      const formatted = formatter.format(value);
+      // Remove the currency symbol and trim whitespace
+      return formatted.replace(symbol, "").trim();
+    };
+
+    return { currencySymbol: symbol, formatCurrency: formatValue };
+  }, [settings?.baseCurrency]);
 
   // Fetch allocation versions when expanded
   const handleExpandAllocation = async (allocationId: string) => {
@@ -84,6 +110,16 @@ export function AllocationHistoryTable({
 
   const currentAllocation = allocations.find((a) => a.id === editingAllocationId);
 
+  const handleResetAllocation = async (allocation: GoalAllocation) => {
+    const resetAllocation: GoalAllocation = {
+      ...allocation,
+      allocationAmount: 0,
+      allocationPercentage: 0,
+    };
+    await onAllocationUpdated(resetAllocation);
+    setAllocationToReset(null);
+  };
+
   return (
     <div className="space-y-4">
       {/* Current Allocations Table */}
@@ -111,11 +147,11 @@ export function AllocationHistoryTable({
                     <tr className="border-b hover:bg-muted/50">
                       <td className="px-4 py-2">{account?.name}</td>
                       <td className="text-right px-4 py-2">
-                        ${alloc.allocationAmount.toFixed(2)}
+                        {currencySymbol}{formatCurrency(alloc.allocationAmount)}
                       </td>
                       <td className="text-right px-4 py-2">{alloc.allocationPercentage.toFixed(1)}%</td>
                       <td className="text-right px-4 py-2 font-semibold">
-                        ${(alloc.initAmount + (currentValue - alloc.initAmount) * (alloc.allocationPercentage / 100)).toFixed(2)}
+                        {currencySymbol}{formatCurrency(alloc.initAmount + (currentValue - alloc.initAmount) * (alloc.allocationPercentage / 100))}
                       </td>
                       <td className="text-center px-4 py-2 text-xs text-muted-foreground">
                         {alloc.allocationDate ? formatActivityDate(alloc.allocationDate) : "-"}
@@ -146,6 +182,11 @@ export function AllocationHistoryTable({
                                 {expandedAllocationId === alloc.id ? "Hide History" : "View History"}
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                                onClick={() => setAllocationToReset(alloc)}
+                              >
+                                Reset
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => setAllocationToDelete(alloc)}
                               >
@@ -166,6 +207,8 @@ export function AllocationHistoryTable({
                           ) : (
                             <AllocationVersionsTable
                               versions={allocationVersions[alloc.id] || []}
+                              currencySymbol={currencySymbol}
+                              formatCurrency={formatCurrency}
                             />
                           )}
                         </td>
@@ -191,6 +234,33 @@ export function AllocationHistoryTable({
           onSubmit={onAllocationUpdated}
         />
       )}
+
+      {/* Reset Confirmation Modal */}
+      <AlertDialog
+        open={!!allocationToReset}
+        onOpenChange={(open) => !open && setAllocationToReset(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Allocation</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will reset the allocation amount to 0 and percentage to 0%. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("editModal.cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (allocationToReset) {
+                  handleResetAllocation(allocationToReset);
+                }
+              }}
+            >
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Confirmation Modal */}
       <AlertDialog
@@ -225,7 +295,7 @@ export function AllocationHistoryTable({
 }
 
 // Sub-component for allocation versions
-function AllocationVersionsTable({ versions }: { versions: AllocationVersion[] }) {
+function AllocationVersionsTable({ versions, currencySymbol, formatCurrency }: { versions: AllocationVersion[]; currencySymbol: string; formatCurrency: (value: number) => string }) {
   if (versions.length === 0) {
     return <p className="text-sm text-muted-foreground">No version history</p>;
   }
@@ -250,7 +320,7 @@ function AllocationVersionsTable({ versions }: { versions: AllocationVersion[] }
                   {version.versionStartDate} to {endDate}
                 </td>
                 <td className="text-right px-3 py-2">
-                  ${version.allocationAmount.toFixed(2)}
+                  {currencySymbol}{formatCurrency(version.allocationAmount)}
                 </td>
                 <td className="text-right px-3 py-2">
                   {version.allocationPercentage.toFixed(1)}%

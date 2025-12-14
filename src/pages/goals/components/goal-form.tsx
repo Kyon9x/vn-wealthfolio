@@ -119,7 +119,10 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
         
         // Create default allocations (0 amount, 0%) for all accounts
         if (accounts && accounts.length > 0) {
-          const allocationDate = new Date().toISOString().split("T")[0];
+          // Use the goal's start date for allocations
+          const allocationDate = createdGoal.startDate 
+            ? new Date(createdGoal.startDate).toISOString().split("T")[0]
+            : new Date().toISOString().split("T")[0];
           const defaultAllocations = accounts.map((account) => ({
             id: `${createdGoal.id}-${account.id}-${Date.now()}`,
             goalId: createdGoal.id,
