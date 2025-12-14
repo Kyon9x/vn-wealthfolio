@@ -20,14 +20,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { GoalEditModal } from "./components/goal-edit-modal";
 import { AllocationHistoryTable } from "./components/allocation-history-table";
-import { AddAllocationModal } from "./components/add-allocation-modal";
+import { EditAllocationModal } from "./components/edit-allocation-modal";
 import GoalsAllocations from "./components/goal-allocations";
+import { GoalEditModal } from "./components/goal-edit-modal";
 import { isGoalOnTrack } from "./lib/goal-utils";
+import { useGoalMutations } from "./use-goal-mutations";
 import { useGoalProgress } from "./use-goal-progress";
 import { TimePeriodOption, useGoalValuationHistory } from "./use-goal-valuation-history";
-import { useGoalMutations } from "./use-goal-mutations";
 
 export default function GoalDetailsPage() {
   const { t } = useTranslation("goals");
@@ -45,16 +45,16 @@ export default function GoalDetailsPage() {
   });
 
   const { accounts } = useAccounts();
-  
+
   // Fetch latest valuations for accounts
   const accountIds = accounts?.map(acc => acc.id) || [];
   const { latestValuations } = useLatestValuations(accountIds);
-  
+
   // Build current account values map from valuations (not from account.balance which may be stale)
   const currentAccountValuesFromValuations = new Map(
     (latestValuations || []).map(val => [val.accountId, val.totalValue])
   );
-  
+
   const [visibleModal, setVisibleModal] = useState(false);
   const [isCreatingAllocation, setIsCreatingAllocation] = useState(false);
   const [timePeriod, setTimePeriod] = useState<TimePeriodOption>("months");
@@ -398,8 +398,8 @@ export default function GoalDetailsPage() {
               <p className="text-muted-foreground text-sm">View current allocation percentages for this goal across accounts.</p>
             </div>
             <Button onClick={() => setIsCreatingAllocation(true)} variant="default">
-              <Icons.Plus className="mr-2 h-4 w-4" />
-              Add Allocations
+              <Icons.Pencil className="mr-2 h-4 w-4" />
+              Edit Allocations
             </Button>
           </div>
           {goal && accounts && (
@@ -447,12 +447,13 @@ export default function GoalDetailsPage() {
 
       {/* Add Allocation Modal */}
       {goal && accounts && (
-        <AddAllocationModal
+        <EditAllocationModal
           open={isCreatingAllocation}
           onOpenChange={setIsCreatingAllocation}
           goal={goal}
           accounts={accounts}
           currentAccountValues={currentAccountValuesFromValuations}
+          existingAllocations={allocations?.filter((a) => a.goalId === id) || []}
           allAllocations={allocations || []}
           onSubmit={async (newAllocations) => {
             for (const allocation of newAllocations) {

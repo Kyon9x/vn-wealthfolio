@@ -1,92 +1,99 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 import { Account, Goal, GoalAllocation } from "@/lib/types";
 import { formatAmount } from "@wealthvn/ui";
+import { useState } from "react";
+import { toast } from "sonner";
 
-interface AddAllocationModalProps {
+interface EditAllocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goal: Goal;
   accounts: Account[];
   currentAccountValues: Map<string, number>;
+  existingAllocations?: GoalAllocation[]; // Current goal's allocations (for prefilling)
   allAllocations?: GoalAllocation[]; // All allocations for calculation
   onSubmit: (allocations: GoalAllocation[]) => Promise<void>;
 }
 
-export function AddAllocationModal({
+export function EditAllocationModal({
   open,
   onOpenChange,
   goal,
   accounts,
   currentAccountValues,
+  existingAllocations = [],
   allAllocations = [],
   onSubmit,
-}: AddAllocationModalProps) {
+}: EditAllocationModalProps) {
   const [allocations, setAllocations] = useState<Record<string, { amount: number; percentage: number }>>({});
-  const [unallocatedBalances, setUnallocatedBalances] = useState<Record<string, number>>({});
+  const [availableBalances, setAvailableBalances] = useState<Record<string, number>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Calculate unallocated balances when modal opens
-  const calculateUnallocatedBalances = () => {
+  // Calculate available balances when modal opens
+  // Available = Unallocated from other goals + Current goal's allocation for this account
+  const calculateAvailableBalances = () => {
     const balances: Record<string, number> = {};
-    
-    console.log("[Modal] Calculating balances...");
+
+    console.log("[Modal] Calculating available balances...");
     console.log("[Modal] accounts:", accounts);
     console.log("[Modal] currentAccountValues Map:", currentAccountValues);
+    console.log("[Modal] existingAllocations:", existingAllocations);
     console.log("[Modal] allAllocations:", allAllocations);
-    
+
     for (const account of accounts) {
       const currentValue = currentAccountValues.get(account.id) || 0;
       console.log(`[Modal] Account ${account.id} (${account.name}): value=${currentValue}`);
-      
-      // Sum all allocations for this account (from all goals)
-      const totalAllocated = allAllocations.reduce((sum, alloc) => {
-        return alloc.accountId === account.id ? sum + alloc.allocationAmount : sum;
+
+      // Sum allocations for this account from OTHER goals (not this goal)
+      const allocatedToOtherGoals = allAllocations.reduce((sum, alloc) => {
+        if (alloc.accountId === account.id && alloc.goalId !== goal.id) {
+          return sum + alloc.allocationAmount;
+        }
+        return sum;
       }, 0);
-      
-      // Unallocated = Current value - Total allocated
-      balances[account.id] = Math.max(0, currentValue - totalAllocated);
+
+      // Available = Current value - Allocated to other goals
+      // This gives us the max amount that can be allocated to this goal
+      balances[account.id] = Math.max(0, currentValue - allocatedToOtherGoals);
     }
-    
-    setUnallocatedBalances(balances);
+
+    setAvailableBalances(balances);
   };
 
   // Handle modal open
   const handleOpenChange = (newOpen: boolean) => {
     if (newOpen) {
-      calculateUnallocatedBalances();
-      
-      // Prefill allocations with unallocated balances
+      calculateAvailableBalances();
+
+      // Prefill allocations with existing goal allocations
       const prefilledAllocations: Record<string, { amount: number; percentage: number }> = {};
       for (const account of accounts) {
         const currentValue = currentAccountValues.get(account.id) || 0;
-        
-        // Sum all allocations for this account (from all goals)
-        const totalAllocated = allAllocations.reduce((sum, alloc) => {
-          return alloc.accountId === account.id ? sum + alloc.allocationAmount : sum;
-        }, 0);
-        
-        const unallocated = Math.max(0, currentValue - totalAllocated);
-        
-        if (unallocated > 0) {
-          const percentage = currentValue > 0 ? (unallocated / currentValue) * 100 : 0;
+
+        // Find existing allocation for this account in this goal
+        const existingAlloc = existingAllocations.find(
+          (alloc) => alloc.accountId === account.id
+        );
+
+        if (existingAlloc) {
+          // Prefill with existing allocation values
           prefilledAllocations[account.id] = {
-            amount: Math.round(unallocated * 100) / 100,
-            percentage: Math.round(percentage * 100) / 100,
+            amount: existingAlloc.allocationAmount,
+            percentage: existingAlloc.allocationPercentage ||
+              (currentValue > 0 ? (existingAlloc.allocationAmount / currentValue) * 100 : 0),
           };
         }
       }
-      
+
       setAllocations(prefilledAllocations);
       setErrors({});
     }
@@ -143,10 +150,10 @@ export function AddAllocationModal({
         continue;
       }
 
-      // Check unallocated balance
-      const unallocated = unallocatedBalances[account.id] || 0;
-      if (alloc.amount > unallocated) {
-        newErrors[account.id] = `Amount exceeds available balance (${formatAmount(unallocated, "USD", false)})`;
+      // Check available balance (includes current goal's existing allocation)
+      const available = availableBalances[account.id] || 0;
+      if (alloc.amount > available) {
+        newErrors[account.id] = `Amount exceeds available balance (${formatAmount(available, "USD", false)})`;
         continue;
       }
     }
@@ -185,11 +192,11 @@ export function AddAllocationModal({
 
       await onSubmit(newAllocations);
       handleOpenChange(false);
-      toast.success("Allocations Created", {
-        description: `Added allocations for ${goal.title}`,
+      toast.success("Allocations Updated", {
+        description: `Updated allocations for ${goal.title}`,
       });
     } catch (err) {
-      toast.error("Failed to create allocations", {
+      toast.error("Failed to update allocations", {
         description: err instanceof Error ? err.message : "Unknown error",
       });
     } finally {
@@ -201,7 +208,7 @@ export function AddAllocationModal({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
-          <DialogTitle>Add Allocations for {goal.title}</DialogTitle>
+          <DialogTitle>Edit Allocations for {goal.title}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -217,17 +224,17 @@ export function AddAllocationModal({
                     Available Balance
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">
-                    Initial Contribution ($)
+                    Initial Contribution
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">
-                    Allocation % (%)
+                    Allocation (%)
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {accounts.map((account) => {
                   const alloc = allocations[account.id];
-                  const unallocated = unallocatedBalances[account.id];
+                  const available = availableBalances[account.id];
                   const hasError = errors[account.id];
 
                   return (
@@ -237,7 +244,7 @@ export function AddAllocationModal({
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="text-muted-foreground">
-                          {formatAmount(unallocated ?? 0, "USD", false)}
+                          {formatAmount(available ?? 0, "USD", false)}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -315,7 +322,7 @@ export function AddAllocationModal({
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? "Creating..." : "Create Allocations"}
+            {isLoading ? "Updating..." : "Update Allocations"}
           </Button>
         </DialogFooter>
       </DialogContent>

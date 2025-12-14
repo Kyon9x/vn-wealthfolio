@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Icons } from "@wealthvn/ui";
+import { useDateFormatter } from "@/hooks/use-date-formatter";
 
 interface AllocationHistoryTableProps {
   goalId: string;
@@ -35,6 +36,7 @@ export function AllocationHistoryTable({
   const [isLoadingVersions, setIsLoadingVersions] = useState<Set<string>>(new Set());
   const [editingAllocationId, setEditingAllocationId] = useState<string | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { formatActivityDate } = useDateFormatter();
 
   // Fetch allocation versions when expanded
   const handleExpandAllocation = async (allocationId: string) => {
@@ -79,9 +81,9 @@ export function AllocationHistoryTable({
             <thead>
               <tr className="border-b bg-muted">
                 <th className="text-left px-4 py-2">Account</th>
-                <th className="text-right px-4 py-2">Amount</th>
+                <th className="text-right px-4 py-2">Initial Contribution</th>
                 <th className="text-right px-4 py-2">%</th>
-                <th className="text-right px-4 py-2">Current Value</th>
+                <th className="text-right px-4 py-2">Contributed Value</th>
                 <th className="text-center px-4 py-2">Started</th>
                 {!readOnly && <th className="text-center px-4 py-2">Actions</th>}
               </tr>
@@ -103,7 +105,7 @@ export function AllocationHistoryTable({
                         ${(alloc.initAmount + (currentValue - alloc.initAmount) * (alloc.allocationPercentage / 100)).toFixed(2)}
                       </td>
                       <td className="text-center px-4 py-2 text-xs text-muted-foreground">
-                        {alloc.allocationDate}
+                        {formatActivityDate(alloc.allocationDate)}
                       </td>
                       {!readOnly && (
                         <td className="text-center px-4 py-2">
