@@ -1,19 +1,19 @@
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDateFormatter } from "@/hooks/use-date-formatter";
 import { useSettingsContext } from "@/lib/settings-provider";
@@ -22,7 +22,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Icons } from "@wealthvn/ui";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AllocationModal } from "./allocation-modal";
+import { EditSingleAllocationModal } from "./edit-single-allocation-modal";
 
 interface AllocationHistoryTableProps {
   goalId: string;
@@ -229,7 +229,7 @@ export function AllocationHistoryTable({
 
       {/* Edit Modal */}
       {currentAllocation && (
-        <AllocationModal
+        <EditSingleAllocationModal
           open={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
           goal={{ id: goalId, title: "" }}

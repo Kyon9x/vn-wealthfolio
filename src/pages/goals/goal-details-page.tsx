@@ -21,7 +21,7 @@ import {
   YAxis,
 } from "recharts";
 import { AllocationHistoryTable } from "./components/allocation-history-table";
-import { EditAllocationModal } from "./components/edit-allocation-modal";
+import { EditAllocationsModal } from "./components/edit-allocations-modal";
 import GoalsAllocations from "./components/goal-allocations";
 import { GoalEditModal } from "./components/goal-edit-modal";
 import { isGoalOnTrack } from "./lib/goal-utils";
@@ -450,7 +450,7 @@ export default function GoalDetailsPage() {
 
       {/* Add Allocation Modal */}
       {goal && accounts && (
-        <EditAllocationModal
+        <EditAllocationsModal
           open={isCreatingAllocation}
           onOpenChange={setIsCreatingAllocation}
           goal={goal}

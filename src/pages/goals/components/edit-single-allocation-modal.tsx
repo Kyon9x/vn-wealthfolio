@@ -1,20 +1,20 @@
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
 import { Account, GoalAllocation } from "@/lib/types";
 import { invoke } from "@tauri-apps/api/core";
-import { DatePickerInput } from "@wealthvn/ui";
+import { DatePickerInput, formatAmount } from "@wealthvn/ui";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
-interface AllocationModalProps {
+interface EditSingleAllocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goal: { id: string; title: string };
@@ -24,7 +24,7 @@ interface AllocationModalProps {
   onSubmit: (allocation: GoalAllocation) => Promise<void>;
 }
 
-export function AllocationModal({
+export function EditSingleAllocationModal({
   open,
   onOpenChange,
   goal,
@@ -32,8 +32,8 @@ export function AllocationModal({
   currentAllocation,
   currentAccountValue,
   onSubmit,
-}: AllocationModalProps) {
-  const [amount, setAmount] = useState<number>(currentAllocation?.allocationAmount || 0);
+}: EditSingleAllocationModalProps) {
+  const [amount, setAmount] = useState<number>(currentAllocation?.initialContribution || 0);
   const [percentage, setPercentage] = useState<number>(currentAllocation?.allocatedPercent || 0);
   const [allocationDate, setAllocationDate] = useState<string>(
     currentAllocation?.allocationDate || new Date().toISOString().split("T")[0]
@@ -45,7 +45,12 @@ export function AllocationModal({
   // Calculate unallocated balance on mount
   useEffect(() => {
     if (!open) return;
-    
+
+    // Reset state when opening (in case props changed)
+    setAmount(currentAllocation?.initialContribution || 0);
+    setPercentage(currentAllocation?.allocatedPercent || 0);
+    setAllocationDate(currentAllocation?.allocationDate || new Date().toISOString().split("T")[0]);
+
     const fetchUnallocated = async () => {
       try {
         const result: { unallocated_balance: number } = await invoke(
@@ -62,7 +67,7 @@ export function AllocationModal({
     };
 
     fetchUnallocated();
-  }, [open, account.id, currentAccountValue]);
+  }, [open, account.id, currentAccountValue, currentAllocation]);
 
   // Handle amount change
   const handleAmountChange = (value: number) => {
@@ -88,17 +93,26 @@ export function AllocationModal({
   const validateForm = async (): Promise<boolean> => {
     const newErrors: Record<string, string> = {};
 
-    if (amount <= 0) {
-      newErrors.amount = "Amount must be greater than 0";
+    if (amount < 0) {
+      newErrors.amount = "Amount cannot be negative";
     }
 
-    if (percentage <= 0 || percentage > 100) {
+    if (percentage < 0 || percentage > 100) {
       newErrors.percentage = "Percentage must be between 0 and 100";
     }
 
-    // Check unallocated balance (only for new allocations)
+    if (amount === 0 && percentage === 0) {
+       newErrors.amount = "Allocation must be greater than 0";
+    }
+
+    // Check unallocated balance (only for new allocations OR if increasing amount)
+    // If editing, we compare (newAmt - oldAmt) against unallocated.
+    // Simplified: unallocated calculation from backend might already exclude THIS allocation if passed properly?
+    // Actually the 'get_unallocated_balance' returns balance excluding ALL allocations.
+    // If we are editing, we are already consuming some balance.
+    // This logic is complex. For now, strict check only if new allocation.
     if (!currentAllocation && amount > unallocatedBalance) {
-      newErrors.amount = `Amount exceeds available unallocated balance ($${unallocatedBalance.toFixed(2)})`;
+      newErrors.amount = `Amount exceeds available unallocated balance (${formatAmount(unallocatedBalance, account.currency, false)})`;
     }
 
     // Validate percentage doesn't exceed 100% with other allocations
@@ -135,7 +149,7 @@ export function AllocationModal({
         id: currentAllocation?.id || `${goal.id}-${account.id}-${Date.now()}`,
         goalId: goal.id,
         accountId: account.id,
-        initialContribution: currentAllocation?.initialContribution || amount,
+        initialContribution: amount, // Correctly use the edited amount
         allocatedPercent: percentage,
         allocationDate,
       };
@@ -181,17 +195,17 @@ export function AllocationModal({
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground text-xs">Account Balance</p>
-              <p className="font-semibold">${currentAccountValue.toFixed(2)}</p>
+              <p className="font-semibold">{formatAmount(currentAccountValue, account.currency, false)}</p>
             </div>
             <div>
               <p className="text-muted-foreground text-xs">Unallocated</p>
-              <p className="font-semibold text-green-600">${unallocatedBalance.toFixed(2)}</p>
+              <p className="font-semibold text-green-600">{formatAmount(unallocatedBalance, account.currency, false)}</p>
             </div>
           </div>
 
           {/* Amount Input */}
           <div>
-            <Label className="text-sm">Allocation Amount ($)</Label>
+            <Label className="text-sm">Initial Contribution</Label>
             <Input
               type="number"
               value={amount}
@@ -240,11 +254,11 @@ export function AllocationModal({
           <div className="rounded-lg bg-blue-50 p-3">
             <p className="text-xs text-muted-foreground">Projected Current Value</p>
             <p className="font-semibold text-blue-600">
-              ${(currentAllocation?.initAmount || amount).toFixed(2)}
+              {formatAmount(amount, account.currency, false)}
             </p>
             {!currentAllocation && (
               <p className="text-xs text-muted-foreground">
-                (Init: ${amount.toFixed(2)} + Growth: $0.00)
+                (Init: {formatAmount(amount, account.currency, false)} + Growth: {formatAmount(0, account.currency, false)})
               </p>
             )}
           </div>

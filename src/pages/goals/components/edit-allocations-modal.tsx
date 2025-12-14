@@ -1,11 +1,11 @@
 import { getHistoricalValuations } from "@/commands/portfolio";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { QueryKeys } from "@/lib/query-keys";
@@ -15,7 +15,7 @@ import { formatAmount } from "@wealthvn/ui";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-interface EditAllocationModalProps {
+interface EditAllocationsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goal: Goal;
@@ -26,7 +26,7 @@ interface EditAllocationModalProps {
   onSubmit: (allocations: GoalAllocation[]) => Promise<void>;
 }
 
-export function EditAllocationModal({
+export function EditAllocationsModal({
   open,
   onOpenChange,
   goal,
@@ -35,7 +35,7 @@ export function EditAllocationModal({
   existingAllocations = [],
   allAllocations = [],
   onSubmit,
-}: EditAllocationModalProps) {
+}: EditAllocationsModalProps) {
   const queryClient = useQueryClient();
   const [allocations, setAllocations] = useState<Record<string, { allocationAmount: number; allocatedPercent: number }>>({});
   const [availableBalances, setAvailableBalances] = useState<Record<string, number>>({});
@@ -242,7 +242,7 @@ export function EditAllocationModal({
       // Check available balance for amount
       const available = availableBalances[account.id] || 0;
       if (alloc.allocationAmount > available) {
-        newErrors[account.id] = `Amount exceeds available balance (${formatAmount(available, "USD", false)})`;
+        newErrors[account.id] = `Amount exceeds available balance (${formatAmount(available, account.currency, false)})`;
         continue;
       }
 
@@ -358,7 +358,7 @@ export function EditAllocationModal({
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <div className="text-muted-foreground">
-                          {formatAmount(available ?? 0, "USD", false)}
+                          {formatAmount(available ?? 0, account.currency, false)}
                         </div>
                       </td>
                       <td className="px-4 py-3">
@@ -422,7 +422,7 @@ export function EditAllocationModal({
                   <div key={account.id} className="flex justify-between">
                     <span>{account.name}:</span>
                     <span>
-                      {formatAmount(alloc.allocationAmount, "USD", false)} ({alloc.allocatedPercent.toFixed(1)}%)
+                      {formatAmount(alloc.allocationAmount, account.currency, false)} ({alloc.allocatedPercent.toFixed(1)}%)
                     </span>
                   </div>
                 );
