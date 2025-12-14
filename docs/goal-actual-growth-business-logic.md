@@ -9,8 +9,8 @@ This document describes the complete business logic for calculating goal actual 
 ### 1. Allocation Model
 
 Each goal has allocations across one or more accounts:
-- **allocationAmount**: The initial dollar amount allocated (locked at allocation date)
-- **allocationPercentage**: The percentage of account growth attributed to this goal (0-100%)
+- **initialContribution**: The initial dollar amount allocated (locked at goal start date).
+- **allocatedPercent**: The percentage of account growth attributed to this goal (0-100%)
 - **allocationDate**: When the allocation was made (typically goal.startDate for initial allocations)
 
 ### 2. Growth Attribution Principle
@@ -25,15 +25,27 @@ Where:
 
 This allows multiple goals to grow from a single account without double-counting.
 
-### 3. Current Value vs Init Value
+### 2.1. Contributed Value
+Contributed Value is the total value of the goal at the current date that have contributed to the goal.
+```
+Contributed Value = Sum of (initialContribution + Account Growth × Allocation Percentage) for all accounts
+```
+
+### 2.2. Goal Growth
+Unallocated Value is the value of the account that is not allocated to any goal at the specified date.
+```
+Unallocated Value = Account Value at Goal specified Date - sum (contributed value and initialContribution of all goals at the specified date)
+```
+
+### 3. Current Value vs Initial Contribution
 
 Under the new allocation system:
 
-- **init_value**: The originally allocated amount (locked in at allocation date)
-- **current_value**: init_value + attributed_growth
-- **growth**: current_value - init_value
+- **initialContribution**: The originally allocated amount (locked in at allocation date)
+- **current_value**: initialContribution + attributed_growth
+- **growth**: current_value - initialContribution
 
-**Important**: All allocations are initialized with amount=0 and percentage=0 when a goal is created. Users then allocate from the unallocated pool.
+**Important**: All allocations are initialized with initialContribution=0 and allocatedPercent=0 when a goal is created. Users then allocate from the unallocated pool.
 
 ## Calculation Scenarios
 
@@ -43,13 +55,13 @@ Under the new allocation system:
 - Account A: Value at goal start (2024-01-01) = 0
 - Account A: Current value (today) = 100,000,000
 - Goal created today with startDate=2024-01-01
-- User allocates: amount=50,000,000, percentage=50%
+- User allocates: initialContribution=0 (can not greater than value at start date), allocatedPercent=50%
 
 **Calculation:**
 ```
 Account growth = 100,000,000 - 0 = 100,000,000
 Goal growth = 100,000,000 × 50% = 50,000,000
-Goal current value = 50,000,000 + 50,000,000 = 100,000,000
+Goal current value = initialContribution + growth = 0 + 50,000,000 = 50,000,000
 ```
 
 ### Scenario 2: Single Account, Multiple Goals
@@ -57,27 +69,28 @@ Goal current value = 50,000,000 + 50,000,000 = 100,000,000
 **Setup:**
 - Account A: Value at goal start = 0
 - Account A: Current value = 100,000,000
-- Goal 1: allocated 50,000,000 @ 50%
-- Goal 2: allocated 30,000,000 @ 30%
+- Goal 1: initialContribution= 0 (can not greater than value at start date), allocatedPercent=50%
+- Goal 2: initialContribution=0 (can not greater than value at start date), allocatedPercent=30%
 - Unallocated: 20,000,000 @ 20%
+- Unallocated growth = 20,000,000
 
 **Calculation:**
 ```
-Account growth = 100,000,000
+Account growth = 100,000,000 (from 0 - 100M)
 
 Goal 1:
   growth = 100,000,000 × 50% = 50,000,000
-  current = 50,000,000 + 50,000,000 = 100,000,000
+  contributedValue = 0 + 50,000,000 = 50,000,000
 
 Goal 2:
   growth = 100,000,000 × 30% = 30,000,000
-  current = 30,000,000 + 30,000,000 = 60,000,000
+  contributedValue = 0 + 30,000,000 = 30,000,000
 
 Unallocated:
   growth = 100,000,000 × 20% = 20,000,000
-  current = 20,000,000 + 20,000,000 = 40,000,000
+  unallocatedValue = 20,000,000
 
-Validation: 100M + 60M + 40M = 200M ✓
+Validation: 50M + 30M + 20M = 100M  = Goal Growth (from 0 - 100M)
 ```
 
 ### Scenario 3: Multiple Accounts, Single Goal
@@ -86,10 +99,10 @@ Validation: 100M + 60M + 40M = 200M ✓
 - Account 1: Value at goal start = 0, Current = 100,000,000
 - Account 2: Value at goal start = 0, Current = 100,000,000
 - Account 3: Value at goal start = 0, Current = 100,000,000
-- Goal 1: 
-  - Account 1: allocated 50,000,000 @ 30%
-  - Account 2: allocated 50,000,000 @ 30%
-  - Account 3: allocated 50,000,000 @ 30%
+- Goal 1:
+  - Account 1: initialContribution=0 (can not greater than value at start date), allocatedPercent=30%
+  - Account 2: initialContribution=0 (can not greater than value at start date), allocatedPercent=30%
+  - Account 3: initialContribution=0 (can not greater than value at start date), allocatedPercent=30%
 
 **Calculation:**
 ```
@@ -99,60 +112,62 @@ Account 3 growth = 100,000,000 × 30% = 30,000,000
 
 Goal 1:
   total_growth = 30M + 30M + 30M = 90,000,000
-  current = (50M + 50M + 50M) + 90M = 240,000,000
+  current = (0 + 0 + 0) + 90M = 90,000,000
 ```
 
 ### Scenario 4: Allocation Edits (Amount Change)
 
 **Setup:**
-- Account A: Value at goal start = 1,000, Current = 1,100
-- Goal allocation: amount=500, percentage=50%
-- User edits allocation to: amount=600
+- Account A: Value at goal start = 1,000, Current account value = 1,100
+- Goal allocation: initialContribution=500, allocatedPercent=50%
+- User edits allocation to: initialContribution=600
 
 **Before Edit:**
 ```
 Growth = (1,100 - 1,000) × 50% = 50
-Current = 500 + 50 = 550
-Unallocated = 1,100 - 500 = 600
+Contributed Value = 500 + 50 = 550
+Unallocated = 1,100 - 550 = 550
 ```
 
 **After Edit:**
 ```
 Growth = (1,100 - 1,000) × 50% = 50 (unchanged - still from historical baseline)
-Current = 600 + 50 = 650
-Unallocated = 1,100 - 600 = 500
+Contributed Value = 600 + 50 = 650
+Unallocated = 1,100 - 650 = 450
 
-Impact: 
-- Allocation increased by 100
+Impact:
+- Allocation increased by 100. The initialContribution is now 600. but the init point of actual growth line is start at 600 after make change
 - Unallocated decreased by 100
 ```
 
-**Key**: The historical growth (50) doesn't change. Only the init_amount changes.
+**Key**: The historical growth (50) doesn't change. Only the initialContribution changes.
 
 ### Scenario 5: Allocation Edits (Percentage Change)
 
 **Setup:**
 - Account A: Value at goal start = 1,000, Current = 1,100
-- Goal allocation: amount=500, percentage=50%
+- Goal allocation: initialContribution=500, allocatedPercent=50%
 - User edits percentage to: 70%
 
 **Before Edit:**
 ```
 Growth = (1,100 - 1,000) × 50% = 50
-Current = 500 + 50 = 550
+Contributed Value = 500 + 50 = 550
+Unallocated = 1,100 - 550 = 550
 ```
 
 **After Edit:**
 ```
 Growth = (1,100 - 1,000) × 70% = 70
-Current = 500 + 70 = 570
+Contributed Value = 500 + 70 = 570
+Unallocated = 1,100 - 570 = 530
 
 Impact:
 - Growth increases by 20 (from the 20% percentage change)
-- Amount stays locked at 500 (never changes)
+- InitialContribution stays locked at 500 (no changes)
 ```
 
-**Key**: Amount is immutable. Only growth recalculates based on new percentage.
+**Key**: initialContribution is immutable. Only growth recalculates based on new percentage. the growth line will start from the new initialContribution point.
 
 ### Scenario 6: Segmented Growth (Multiple Allocation Versions)
 
@@ -163,24 +178,30 @@ Impact:
 - Current (today) = 1,330
 
 **Allocation History:**
-- Version 1: Jan 1 - Feb 15, percentage=50%
-- Version 2: Feb 15 - Apr 1, percentage=50%
-- Version 3: Apr 1 - today, percentage=60%
+Assign Acount A to goal
+- initialContribution=0
+- Version 1: Jan 1 - Feb 15, allocatedPercent=50%
+- Version 2: Feb 15 - Apr 1, allocatedPercent=50%
+- Version 3: Apr 1 - today, allocatedPercent=60%
 
 **Calculation:**
 ```
 Period 1 (Jan 1 - Feb 15):
-  growth = (1,100 - 1,000) × 50% = 50
+  goal growth = (1,100 - 1,000) × 50% = 50
+  goal contributedValue = 0 + 50 = 50
 
 Period 2 (Feb 15 - Apr 1):
-  growth = (1,250 - 1,100) × 50% = 75
+  goal growth = (1,250 - 1,100) × 50% = 75
+  goal contributedValue = 50 + 75 = 125
 
 Period 3 (Apr 1 - today):
-  growth = (1,330 - 1,250) × 60% = 48
+  goal growth = (1,330 - 1,250) × 60% = 48
+  goal contributedValue = 125 + 48 = 173
 
-Total growth = 50 + 75 + 48 = 173
-Current value = 500 + 173 = 673
+Total goal growth = 50 + 75 + 48 = 173
+Total goal contributedValue = 0 + 173 = 173
 ```
+Note: The initialContribution is 0, so the contributed value is the same as the growth. The line in chart only change following the changes of growth.
 
 ## Edge Cases
 
@@ -190,7 +211,7 @@ Current value = 500 + 173 = 673
 - Account A: Value on 2024-01-01 = 0
 - Account A: Current (2025-12-14) = 100,000,000
 - Goal created today with startDate=2024-01-01
-- User allocates: amount=50,000,000
+- User allocates: initialContribution=0 (account value at start date is 0, not allowed to greater than value at start date), allocatedPercent=50%
 
 **Result:**
 ```
@@ -214,14 +235,14 @@ According to allocation-setting-plan.md:
 ### Case 2: Account Value Decreases
 
 **Setup:**
-- Account A: Value at goal start = 1,000, Current = 800
-- Goal allocation: amount=500, percentage=50%
+- Account A: Value at goal start = 1,000, Current value = 800
+- Goal allocation: initialContribution=500, allocatedPercent=50%
 
 **Calculation:**
 ```
 Account growth = 800 - 1,000 = -200 (negative/loss)
 Goal growth = -200 × 50% = -100 (loss proportional to allocation)
-Current value = 500 + (-100) = 400
+Contributed value = 500 + (-100) = 400
 ```
 
 **Key**: Losses are attributed proportionally to allocations, just like gains.
@@ -229,14 +250,14 @@ Current value = 500 + (-100) = 400
 ### Case 3: Zero Account Value
 
 **Setup:**
-- Account A: Value at goal start = 0, Current = 100,000,000
-- Goal allocation: amount=0, percentage=50% (default initialization)
+- Account A: Value at goal start = 0, Current value = 100,000,000
+- Goal allocation: initialContribution=0, allocatedPercent=50% (default initialization)
 
 **Calculation:**
 ```
 Account growth = 100,000,000 - 0 = 100,000,000
 Goal growth = 100,000,000 × 50% = 50,000,000
-Current value = 0 + 50,000,000 = 50,000,000
+Contributed value = 0 + 50,000,000 = 50,000,000
 
 This is valid and shows correct initialization behavior
 ```
@@ -246,7 +267,7 @@ This is valid and shows correct initialization behavior
 **Setup:**
 - Account A: Value on 2024-01-01 = 100,000
 - Account A: Value on 2024-06-01 = 200,000 (grew by 100,000)
-- Account A: Current = 300,000
+- Account A: Current value = 300,000
 
 **Scenario A: Allocate on 2024-06-01**
 ```
@@ -258,226 +279,234 @@ For the allocation, use:
 - Current value: 300,000
 
 Unallocated at goal start = 100,000
-User can allocate from current unallocated value (which has grown)
+User can allocate from current unallocated value (which has grown from 100,000 to 200,000)
 
 If user allocates 150,000 on 2024-06-01:
-- Allocation amount: 150,000 (locked in)
-- Allocation percentage: 150,000 / 200,000 = 75% (of account at allocation time)
+- initialContribution: 150,000 (locked in)
+- unallocated: 200,000 - 150,000 = 50,000
+- allocation percentage: manual input (20%)
 
 Growth calculation:
-- account growth from goal start = 300,000 - 100,000 = 200,000
-- goal growth = 200,000 × 75% = 150,000
-- current = 150,000 + 150,000 = 300,000
+- account growth from goal allocation date = 300,000 - 200,000 = 100,000
+- goal growth = 100,000 × 20% = 20,000
+- contributedValue = 150,000 + 20,000 = 170,000
+- unallocated = 50,000 + 100,000* (100% - 20%) = 50,000 + 80,000 = 130,000
 ```
 
 **Key**: Allocation percentage is based on account value AT ALLOCATION TIME, not goal start time.
 
 ## Implementation Requirements
 
-### 1. Backend Calculation (Rust)
+ ### 1. Backend Calculation (Rust)
 
-The `GoalService.calculate_goal_progress_on_date()` must:
+ The `GoalService.calculate_goal_progress_on_date()` must:
 
-```rust
-For each allocation:
-  1. Get account value at goal.start_date (baseline)
-  2. Get account value at query_date (current)
-  3. Calculate account_growth = current - baseline
-  4. Calculate allocated_growth = account_growth × (allocation.percentage / 100)
-  5. Accumulate total_growth
-  6. Return GoalProgressSnapshot with all details
-```
+ ```rust
+ For each allocation:
+   1. Get account value at goal.start_date (baseline)
+   2. Get account value at query_date (current)
+   3. Calculate account_growth = current - baseline
+   4. Calculate allocated_growth = account_growth × (allocation.percentage / 100)
+   5. Accumulate total_growth
+   6. Return GoalProgressSnapshot with all details
+ ```
 
-**Current Implementation Status**: ✓ Implemented correctly in `src-core/src/goals/goals_service.rs`
+ **Current Implementation Status**: ✓ Implemented correctly in `src-core/src/goals/goals_service.rs`
 
-### 2. Frontend Calculation (React)
+ ### 2. Frontend Calculation (React)
 
-The `useGoalProgress()` hook must:
+ The `useGoalProgress()` hook must:
 
-```typescript
-For each goal:
-  1. Find all active allocations (where startDate <= today <= endDate)
-  2. For each allocation:
-     - Get current account value from latestValuations
-     - Calculate: allocated_value = account_value × (allocation.percentage / 100)
-  3. Sum all allocated_values = currentValue
-  4. Calculate projectedValue using compound interest formula
-  5. Compare currentValue vs projectedValue to determine isOnTrack
-```
+ ```typescript
+ For each goal:
+   1. Find all active allocations (where startDate <= today <= endDate)
+   2. For each allocation:
+      - Get current account value from latestValuations
+      - Calculate: allocated_value = account_value × (allocation.percentage / 100)
+   3. Sum all allocated_values = currentValue
+   4. Calculate projectedValue using compound interest formula
+   5. Compare currentValue vs projectedValue to determine isOnTrack
+ ```
 
-**Current Implementation Status**: ⚠️ Partially correct but mixing two calculation methods:
-- Uses `percentAllocation` directly (should be `allocationPercentage`)
-- Doesn't account for historical account values at goal start
+ **Current Implementation Status**: ⚠️ Incorrect / Divergent
+ - Uses `percentAllocation` (should be `allocatedPercent` as per type definitions)
+ - Calculates `allocatedValue` as `totalValue * percentage`. This interprets percentage as "% of Total Account Value" rather than "% of Growth or Attribution"
+ - Does not subtract historical account value at goal start (no access to historical data in this hook)
+ - Assumes `startValue` is 0 for projections
 
-### 3. Modal Display (Edit Allocation)
+ ### 3. Modal Display (Edit Allocation)
 
-The `EditAllocationModal` must display:
+ The `EditAllocationModal` must display:
 
-```
-For each account:
-  - Value at goal.startDate (historical baseline)
-  - Unallocated at that date
-  - Current user allocation amount
-  - Current allocation percentage
-  
-Validation:
-  - Sum of allocations <= unallocated balance at goal start
-  - Amount delta fits within available unallocated
-```
+ ```
+ For each account:
+   - Value at goal.startDate (historical baseline)
+   - Unallocated at that date
+   - Current user allocation amount
+   - Current allocation percentage
 
-**Current Implementation Status**: ✓ Updated in this task
+ Validation:
+   - Sum of allocations <= unallocated balance at goal start
+   - Amount delta fits within available unallocated
+ ```
 
-### 4. Data Models
+ **Current Implementation Status**: ⚠️ Checks against Current Value
+ - Modal receives `currentAccountValues`
+ - Validates that `initialContribution <= currentAccountValue - sum(other_allocations_init_contributions)`
+ - Does not strictly validate against historical unallocated balance at goal start date
 
-Required fields on `GoalAllocation`:
+ ### 4. Data Models
 
-```
-- id: string (unique per goal-account pair)
-- goalId: string
-- accountId: string
-- allocationAmount: f64 (the init_amount, locked)
-- allocationPercentage: f64 (0-100, the growth attribution %)
-- allocationDate: string (when allocated, typically goal.startDate)
-- initAmount: f64 (same as allocationAmount, for clarity)
-- startDate: string (goal.startDate, when this allocation begins)
-- endDate: string (goal.dueDate, when this allocation ends)
-```
+ Required fields on `GoalAllocation`:
 
-## Growth Line Chart Calculation
+ ```
+ - id: string (unique per goal-account pair)
+ - goalId: string
+ - accountId: string
+ - initialContribution: number (the init_amount, locked)
+ - allocatedPercent: number (0-100, the growth attribution %)
+ - allocationDate: string (when allocated, typically goal.startDate)
+ - initAmount: f64 (same as initialContribution, for clarity)
+ - startDate: string (goal.startDate, when this allocation begins)
+ - endDate: string (goal.dueDate, when this allocation ends)
+ ```
 
-### Actual Growth Line
+ **Current Implementation Status**: ✓ Types match `src/lib/types.ts` (`allocatedPercent`), but frontend usage in `useGoalProgress` is inconsistent (uses `percentAllocation`).
 
-For each date in chart:
+ ## Growth Line Chart Calculation
 
-```
-1. Get account values at that date (historical)
-2. For each allocation:
-   - Lookup allocation version active on that date
-   - Calculate: growth = (account_value_at_date - account_value_at_goal_start) × percentage
-3. Sum all growth = actual_value at that date
-```
+ ### Actual Growth Line
 
-**Key**: Use historical account valuations, not current values.
+ For each date in chart:
 
-### Projected Growth Line
+ ```
+ 1. Get account values at that date (historical)
+ 2. For each allocation:
+    - Lookup allocation version active on that date
+    - Calculate: growth = (account_value_at_date - account_value_at_goal_start) × percentage
+ 3. Sum all growth = actual_value at that date
+ ```
 
-For each date in chart:
+ **Key**: Use historical account valuations, not current values.
 
-```
-1. Calculate months from goal start to that date
-2. Use compound interest formula:
-   FV = PMT × [((1 + r)^n - 1) / r]
-   
-   Where:
-   - PMT = monthly_investment from goal
-   - r = annual_return_rate / 12 / 100
-   - n = months_from_start
-```
+ ### Projected Growth Line
 
-**Current Implementation Status**: ✓ Implemented in `src/pages/goals/use-goal-valuation-history.ts`
+ For each date in chart:
 
-## Validation Rules
+ ```
+ 1. Calculate months from goal start to that date
+ 2. Use compound interest formula:
+    FV = PMT × [((1 + r)^n - 1) / r]
 
-### 1. Allocation Constraints
+    Where:
+    - PMT = monthly_investment from goal
+    - r = annual_return_rate / 12 / 100
+    - n = months_from_start
+ ```
 
-```
-For each account on any date:
-  Sum(allocation_amounts for active allocations) <= account_value_at_that_date
-```
+ **Current Implementation Status**: ✓ Implemented in `src/pages/goals/use-goal-valuation-history.ts`
+ - Fetches historical valuations correctly
+ - Calculates actuals attempting to follow: `initialContribution + (current - start) * percent`
+ - **Note**: Projection calculation currently ignores the `startValue` (Initial Allocation), projecting only monthly contributions.
 
-### 2. Percentage Constraints
+ ## Validation Rules
 
-```
-For each account on any date:
-  Sum(allocation_percentages for active allocations) <= 100%
-```
+ ### 1. Allocation Constraints
 
-### 3. Unallocated Balance
+ ```
+ For each account on any date:
+   Sum(initialContributions for active allocations) <= account_value_at_that_date
+ ```
 
-```
-unallocated_value = account_current_value - sum(allocation_amounts)
-unallocated_value must be >= 0
-```
+ ### 2. Percentage Constraints
 
-### 4. Retroactive Allocation
+ ```
+ For each account on any date:
+   Sum(allocatedPercents for active allocations) <= 100%
+ ```
 
-When allocating to a goal with historical start date:
+ ### 3. Unallocated Balance
 
-```
-Check at goal start date:
-  requested_allocation <= unallocated_at_goal_start
+ ```
+ unallocated_value = account_current_value - sum(initialContributions)
+ unallocated_value must be >= 0
+ ```
 
-If violated:
-  Error: "Cannot allocate more than available at goal start date (YYYY-MM-DD)"
-```
+ ### 4. Retroactive Allocation
 
-## Configuration & Flexibility
+ When allocating to a goal with historical start date:
 
-The actual growth line becomes configurable through:
+ ```
+ Check at goal start date:
+   requested_allocation <= unallocated_at_goal_start
 
-### 1. Allocation Amount Changes
-- User edits the init_amount
-- Growth recalculates automatically
-- Unallocated pool adjusts by the delta
+ If violated:
+   Error: "Cannot allocate more than available at goal start date (YYYY-MM-DD)"
+ ```
 
-### 2. Allocation Percentage Changes
-- User edits the growth attribution percentage
-- Only future/historical growth recalculates
-- Init_amount remains locked
+ ## Configuration & Flexibility
 
-### 3. Allocation History
-- Each edit creates a new version
-- Growth segments by time period
-- Total growth = sum of all period gains
+ The actual growth line becomes configurable through:
 
-### 4. Account Selection
-- User can allocate from different accounts
-- Each account's growth is tracked independently
-- Multi-account goals show per-account breakdown
+ ### 1. Allocation Amount Changes
+ - User edits the initialContribution
+ - Growth recalculates automatically
+ - Unallocated pool adjusts by the delta
 
-## Testing Scenarios
+ ### 2. Allocation Percentage Changes
+ - User edits the growth attribution percentage
+ - Only future/historical growth recalculates
+ - initialContribution remains locked
 
-All scenarios from "Calculation Scenarios" section should have tests covering:
+ ### 3. Allocation History
+ - Each edit creates a new version
+ - Growth segments by time period
+ - Total growth = sum of all period gains
 
-1. ✓ Single account, single goal
-2. ✓ Single account, multiple goals
-3. ✓ Multiple accounts, single goal
-4. ✓ Allocation amount edits
-5. ✓ Allocation percentage edits
-6. ✓ Segmented growth (version history)
-7. ✓ Negative growth (losses)
-8. ✓ Zero baseline values
-9. ✓ Retroactive allocation to historical start date
+ ### 4. Account Selection
+ - User can allocate from different accounts
+ - Each account's growth is tracked independently
+ - Multi-account goals show per-account breakdown
 
-## Issues & Known Gaps
+ ## Testing Scenarios
 
-### 1. React Hook Mismatch
-- `useGoalProgress()` doesn't fetch historical account values at goal start date
-- Should use account values at `goal.startDate`, not just current values
-- This causes incorrect calculations for accounts with pre-goal history
+ All scenarios from "Calculation Scenarios" section should have tests covering:
 
-### 2. Chart Data Generation
-- `use-goal-valuation-history.ts` needs access to historical account valuations
-- Currently may not have this data for all dates in the display range
+ 1. ✓ Single account, single goal
+ 2. ✓ Single account, multiple goals
+ 3. ✓ Multiple accounts, single goal
+ 4. ✓ Allocation amount edits
+ 5. ✓ Allocation percentage edits
+ 6. ✓ Segmented growth (version history)
+ 7. ✓ Negative growth (losses)
+ 8. ✓ Zero baseline values
+ 9. ✓ Retroactive allocation to historical start date
 
-### 3. Allocation Field Names
-- Frontend uses `percentAllocation` but backend uses `allocation_percentage`
-- Should standardize naming (prefer `allocationPercentage`)
+ ## Issues & Known Gaps
 
-### 4. Init Value Display
-- Currently showing init_value=0 for all goals
-- Should show actual `allocationAmount` from first allocation
+ ### 1. React Hook Logic Errors (`useGoalProgress`)
+ - Uses incorrect field `percentAllocation` (instead of `allocatedPercent`), which likely results in `undefined` values at runtime.
+ - Implements `Total Value * Percentage` logic instead of `Init + (Growth * Percentage)`, conflating "Ownership of Account" with "Attribution of Growth".
+ - Does not fetch historical data to establish baseline.
 
-### 5. Modal Integration
-- Modal needs parent component to provide historical account values
-- Parent must calculate unallocated balance at goal start date
-- Validation on parent side before calling modal's onSubmit
+ ### 2. Projection Logic Gaps
+ - `calculateProjectedValue` (in both `useGoalProgress` and `useGoalValuationHistory`) ignores the `startValue` / `initialContribution`. It projects growth ONLY on monthly contributions, effectively assuming 0 starting capital for the projection curve.
 
-## References
+ ### 3. Modal Validation logic
+ - `EditAllocationModal` validates against `currentAccountValues`. This allows allocating funds that might not have existed at `goal.startDate`, potentially creating invalid historical states.
+ - It subtracts `sum(initialContributions)` from `currentValue` to find "Available". This mixes historical cost with current market value, which is an imprecise way to determine available "Growth" capacity.
 
-- `docs/.temporary/allocation-setting-plan.md` - Allocation model design
-- `src-core/src/goals/goals_service.rs` - Core growth calculation logic
-- `src-core/src/goals/goal_progress_model.rs` - Data models
-- `src/pages/goals/use-goal-progress.ts` - Frontend progress calculation
-- `src/pages/goals/use-goal-valuation-history.ts` - Chart data generation
-- `src/pages/goals/components/edit-allocation-modal.tsx` - UI for allocation editing
+ ### 4. Historical Data Fallbacks
+ - `useGoalValuationHistory` defaults `startDateValue` to `initialContribution` if strict historical data for the start date is missing. This is a reasonable fallback but relies on `initialContribution` being accurate.
+
+ ### 5. Field Naming Consistency
+ - `GoalAllocation` interface is correct (`allocatedPercent`), but usage in some hooks (`useGoalProgress`) is incorrect.
+
+ ## References
+
+ - `docs/.temporary/allocation-setting-plan.md` - Allocation model design
+ - `src-core/src/goals/goals_service.rs` - Core growth calculation logic
+ - `src-core/src/goals/goal_progress_model.rs` - Data models
+ - `src/pages/goals/use-goal-progress.ts` - Frontend progress calculation
+ - `src/pages/goals/use-goal-valuation-history.ts` - Chart data generation
+ - `src/pages/goals/components/edit-allocation-modal.tsx` - UI for allocation editing

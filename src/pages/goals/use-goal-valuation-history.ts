@@ -281,7 +281,7 @@ export function useGoalValuationHistory(
   const allocatedAccountIds = useMemo(() => {
     if (!allocations || !goal) return [];
     return allocations
-      .filter((alloc) => alloc.goalId === goal.id && alloc.percentAllocation > 0)
+      .filter((alloc) => alloc.goalId === goal.id && alloc.allocatedPercent > 0)
       .map((alloc) => alloc.accountId);
   }, [allocations, goal]);
 
@@ -391,7 +391,7 @@ export function useGoalValuationHistory(
         allocationDetailsMap.set(alloc.accountId, {
           percentage: alloc.allocatedPercent / 100,
           initialContribution: alloc.initialContribution,
-          startDate: alloc.allocationDate,
+          startDate: alloc.allocationDate ? alloc.allocationDate.split('T')[0] : (goal.startDate ? goal.startDate.split('T')[0] : undefined),
         });
       }
     });
@@ -421,17 +421,31 @@ export function useGoalValuationHistory(
             const valuation = valuations.find((v) => v.valuationDate === dateStr);
             if (valuation) {
               const { initialContribution, percentage, startDate } = allocationDetails;
-              
+
               // Find the account value at the allocation start date
-              let startDateValue = initialContribution;
-              if (startDate) {
-                const startValuation = valuations.find((v) => v.valuationDate === startDate);
+              // If start date valuation is not found, we should assume 0 (account didn't exist)
+              // UNLESS we are sure it existed but data is missing.
+              // But definitively, fallback to initialContribution (currency amount) is WRONG for an Account Value.
+
+              let startAccountValue = 0;
+              const baselineDate = startDate || (goal.startDate ? goal.startDate.split('T')[0] : '');
+
+              if (baselineDate) {
+                const startValuation = valuations.find((v) => v.valuationDate === baselineDate);
                 if (startValuation) {
-                  startDateValue = startValuation.totalValue;
+                  startAccountValue = startValuation.totalValue;
+                } else if (valuations.length > 0) {
+                   // Fallback: If exact start date is missing (e.g. holidays, weekends, or API range mismatch),
+                   // use the earliest available valuation in the fetched set as the baseline.
+                   // This is safe because we explicitly requested data starting from the goal/allocation start date.
+                   const earliestValuation = valuations.reduce((prev, curr) =>
+                       prev.valuationDate < curr.valuationDate ? prev : curr
+                   );
+                   startAccountValue = earliestValuation.totalValue;
                 }
               }
-              
-              const contributedValue = initialContribution + (valuation.totalValue - startDateValue) * percentage;
+
+              const contributedValue = initialContribution + (valuation.totalValue - startAccountValue) * percentage;
               totalValue += contributedValue;
             }
           });
@@ -466,25 +480,13 @@ export function useGoalValuationHistory(
     const annualReturnRate = goal.targetReturnRate ?? 0;
 
     // Find starting value for projection
-    // For future goals: use 0 (goal hasn't started)
-    // For past/current goals: use the first actual value at or after goal start date
+    // For projection, the starting principal is the sum of all initial contributions.
+    // This represents the "baseline" value at the start of the goal.
     let startValue = 0;
-    if (!isGoalInFuture) {
-      const sortedActualDates = Array.from(actualValuesByDate.keys()).sort();
-      const goalStartStr = format(goalStartDate, "yyyy-MM-dd");
+    allocationDetailsMap.forEach((details) => {
+        startValue += details.initialContribution;
+    });
 
-      // Find the first valuation at or after the goal start date
-      for (const dateStr of sortedActualDates) {
-        if (dateStr >= goalStartStr) {
-          startValue = actualValuesByDate.get(dateStr) ?? 0;
-          break;
-        }
-      }
-      // If no value found after goal start, use the first available value
-      if (startValue === 0 && sortedActualDates.length > 0) {
-        startValue = actualValuesByDate.get(sortedActualDates[0]) ?? 0;
-      }
-    }
 
     // Build chart data points
     return dateIntervals.map((date) => {

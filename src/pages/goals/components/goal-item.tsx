@@ -3,11 +3,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Goal, GoalAllocation } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import {
-  formatAmount,
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
+    formatAmount,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from "@wealthvn/ui";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -40,7 +40,7 @@ export function GoalItem({
   // Calculate allocation stats
   const allocationCount = allocations.length;
   // Sum of allocation percentages for this goal
-  const totalAllocationPercent = allocations.reduce((sum, a) => sum + a.percentAllocation, 0);
+  const totalAllocationPercent = allocations.reduce((sum, a) => sum + a.allocatedPercent, 0);
   // Average allocation: sum of allocations / (total accounts * 100)
   // e.g., if goal has 50% from account1 + 50% from account2, and there are 2 accounts total:
   // (50 + 50) / (2 * 100) = 50%

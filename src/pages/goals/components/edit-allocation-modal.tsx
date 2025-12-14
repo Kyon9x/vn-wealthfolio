@@ -1,3 +1,4 @@
+import { getHistoricalValuations } from "@/commands/portfolio";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -38,74 +39,127 @@ export function EditAllocationModal({
   const queryClient = useQueryClient();
   const [allocations, setAllocations] = useState<Record<string, { allocationAmount: number; allocatedPercent: number }>>({});
   const [availableBalances, setAvailableBalances] = useState<Record<string, number>>({});
+  const [historicalAccountValues, setHistoricalAccountValues] = useState<Record<string, number>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingHistory, setIsFetchingHistory] = useState(false);
 
-  // Calculate available balances when modal opens
-  // Available = Unallocated from other goals + Current goal's allocation for this account
+  // Fetch historical valuations at goal start date
+  useEffect(() => {
+    const fetchHistoricalValues = async () => {
+      // If no start date, we can't fetch history.
+      // If it's a future goal or no start date, maybe we fall back to current values?
+      // But for Scenario 1, we assume startDate exists.
+      if (!open || !goal.startDate || accounts.length === 0) return;
+
+      setIsFetchingHistory(true);
+      try {
+        const historyMap: Record<string, number> = {};
+        const promises = accounts.map(async (account) => {
+          try {
+             // Fetch valuation specifically on the goal start date
+             const valuations = await getHistoricalValuations(
+               account.id,
+               goal.startDate,
+               goal.startDate
+             );
+
+             if (valuations && valuations.length > 0) {
+               historyMap[account.id] = valuations[0].totalValue;
+             } else {
+               // If no valuation found on that day, it might mean account didn't exist or had 0 value
+               historyMap[account.id] = 0;
+             }
+          } catch (err) {
+            console.error(`Failed to fetch history for account ${account.id}`, err);
+            historyMap[account.id] = 0;
+          }
+        });
+
+        await Promise.all(promises);
+        setHistoricalAccountValues(historyMap);
+      } catch (error) {
+        console.error("Error fetching historical valuations", error);
+      } finally {
+        setIsFetchingHistory(false);
+      }
+    };
+
+    fetchHistoricalValues();
+  }, [open, goal.startDate, accounts]);
+
+  // Calculate available balances
+  // Available = (Historical Value at Start Date) - (Unallocated from other goals)
   const calculateAvailableBalances = () => {
     const balances: Record<string, number> = {};
 
-    console.log("[Modal] Calculating available balances...");
-    console.log("[Modal] accounts:", accounts);
-    console.log("[Modal] currentAccountValues Map:", currentAccountValues);
-    console.log("[Modal] existingAllocations:", existingAllocations);
-    console.log("[Modal] allAllocations:", allAllocations);
-
     for (const account of accounts) {
-      const currentValue = currentAccountValues.get(account.id) || 0;
-      console.log(`[Modal] Account ${account.id} (${account.name}): value=${currentValue}`);
+      // Use historical value if we have a start date, otherwise current value (fallback)
+      // Scenario 1 requires strictly using value at goal start.
+      // If historicalAccountValues is not populated yet (loading), we might default to 0 to prevent premature allocation?
+      // Or fallback to current?
+      // If we are still fetching, we shouldn't allow editing ideally.
+      // But let's use historical if present, else 0 if startDate present and not fetched?
 
-      // Sum allocations for this account from OTHER goals (not this goal)
+      let baselineValue = 0;
+      if (goal.startDate) {
+         baselineValue = historicalAccountValues[account.id] ?? 0;
+      } else {
+         baselineValue = currentAccountValues.get(account.id) || 0;
+      }
+
+      // Sum allocations for this account from OTHER goals
       const allocatedToOtherGoals = allAllocations.reduce((sum, alloc) => {
-          return sum + (alloc.initialContribution ?? 0);
-        }
-        return sum;
+        // Exclude allocations for this goal (already handled by 'existingAllocations' logic elsewhere for prefill)
+        // Check if allocation belongs to OTHER goal
+        if (alloc.goalId === goal.id) return sum;
+        // Check if allocation is for THIS account
+        if (alloc.accountId !== account.id) return sum;
+
+        return sum + (alloc.initialContribution ?? 0);
       }, 0);
 
-      // Available = Unallocated from other goals at this goal's start date
-      // This gives us the max amount that can be allocated to this goal
-      balances[account.id] = Math.max(0, currentValue - allocatedToOtherGoals);
+      balances[account.id] = Math.max(0, baselineValue - allocatedToOtherGoals);
     }
 
     setAvailableBalances(balances);
   };
 
-  // Initialize when modal opens
+  // Initialize and Recalculate when dependencies change
   useEffect(() => {
     if (open) {
-      // Invalidate and refetch allocations to ensure fresh data
+      calculateAvailableBalances();
+    }
+  }, [open, historicalAccountValues, allAllocations, currentAccountValues, accounts, goal.startDate]); // Re-run when history loads
+
+  // Initial Data Refetch
+  useEffect(() => {
+    if (open) {
       queryClient.invalidateQueries({ queryKey: [QueryKeys.GOALS_ALLOCATIONS] });
       queryClient.refetchQueries({ queryKey: [QueryKeys.GOALS_ALLOCATIONS] });
     }
   }, [open, queryClient]);
 
-  // Prefill form when allocations are updated
+  // Prefill form
   useEffect(() => {
     if (open) {
-      calculateAvailableBalances();
-
-      // Prefill allocations with existing goal allocations
       const prefilledAllocations: Record<string, { allocationAmount: number; allocatedPercent: number }> = {};
       for (const account of accounts) {
-        // Find existing allocation for this account in this goal
         const existingAlloc = existingAllocations.find(
           (alloc) => alloc.accountId === account.id
         );
 
         if (existingAlloc) {
-          // Prefill with existing allocation values
           prefilledAllocations[account.id] = {
             allocationAmount: existingAlloc.initialContribution,
             allocatedPercent: existingAlloc.allocatedPercent || 0,
           };
         }
       }
-
       setAllocations(prefilledAllocations);
-      setErrors({});
+      setErrors({}); // Clear errors on open/re-prefill
     }
-  }, [open, existingAllocations, allAllocations, accounts, currentAccountValues]);
+  }, [open, accounts, existingAllocations]);
 
   // Handle modal open/close
   const handleOpenChange = (newOpen: boolean) => {
@@ -285,7 +339,7 @@ export function EditAllocationModal({
                           placeholder="0.00"
                           step="0.01"
                           min="0"
-                          disabled={isLoading}
+                          disabled={isLoading || isFetchingHistory}
                           className={`w-32 ${hasError ? "border-red-500" : ""}`}
                         />
                       </td>
@@ -300,7 +354,7 @@ export function EditAllocationModal({
                           step="0.1"
                           min="0"
                           max="100"
-                          disabled={isLoading}
+                          disabled={isLoading || isFetchingHistory}
                           className={`w-24 ${hasError ? "border-red-500" : ""}`}
                         />
                       </td>
@@ -346,11 +400,11 @@ export function EditAllocationModal({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading}>
+          <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading || isFetchingHistory}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading}>
-            {isLoading ? "Updating..." : "Update Allocations"}
+          <Button onClick={handleSubmit} disabled={isLoading || isFetchingHistory}>
+            {isLoading ? "Updating..." : isFetchingHistory ? "Loading data..." : "Update Allocations"}
           </Button>
         </DialogFooter>
       </DialogContent>
