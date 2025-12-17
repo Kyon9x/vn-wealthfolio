@@ -1,5 +1,6 @@
 import { getGoalsAllocation } from "@/commands/goal";
 import { getHistoricalValuations } from "@/commands/portfolio";
+import { getMonthsDiff } from "@/lib/date-utils";
 import { QueryKeys } from "@/lib/query-keys";
 import type { AccountValuation, Goal, GoalAllocation } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +25,7 @@ import {
   subYears,
 } from "date-fns";
 import { useMemo } from "react";
+import { calculateProjectedValue } from "./lib/goal-utils";
 
 export type TimePeriodOption = "weeks" | "months" | "years" | "all";
 
@@ -110,48 +112,7 @@ interface UseGoalValuationHistoryResult {
   error: Error | null;
 }
 
-/**
- * Calculate projected value based on regular contributions only
- * FV = PMT × [((1 + r)^n - 1) / r]
- *
- * @param monthlyInvestment - Monthly contribution (PMT)
- * @param annualReturnRate - Annual return rate as percentage (e.g., 7 for 7%)
- * @param monthsFromStart - Number of months from start date
- */
-function calculateProjectedValue(
-  _startValue: number,
-  monthlyInvestment: number,
-  annualReturnRate: number,
-  monthsFromStart: number,
-): number {
-  if (monthsFromStart <= 0) return 0;
 
-  const monthlyRate = annualReturnRate / 100 / 12;
-
-  if (monthlyRate === 0) {
-    // No return rate, just accumulate contributions
-    return monthlyInvestment * monthsFromStart;
-  }
-
-  // FV = PMT × [((1 + r)^n - 1) / r]
-  const compoundFactor = Math.pow(1 + monthlyRate, monthsFromStart);
-  return monthlyInvestment * ((compoundFactor - 1) / monthlyRate);
-}
-
-/**
- * Get the number of months (including fractional) between two dates
- */
-function getMonthsDiff(startDate: Date, endDate: Date): number {
-  const yearDiff = endDate.getFullYear() - startDate.getFullYear();
-  const monthDiff = endDate.getMonth() - startDate.getMonth();
-  const wholMonths = yearDiff * 12 + monthDiff;
-
-  // Add fractional month based on days
-  const daysDiff = endDate.getDate() - startDate.getDate();
-  const fractionalMonth = daysDiff / 30; // Use 30 as average days per month
-
-  return wholMonths + fractionalMonth;
-}
 
 /**
  * Generate date intervals based on the selected time period

@@ -40,6 +40,13 @@ const GoalsAllocations: React.FC<GoalsAllocationsProps> = ({
   const [totalAllocations, setTotalAllocations] = useState<Record<string, number>>({});
   const [isExceeding, setIsExceeding] = useState<boolean>(false);
 
+  // Sync local state with props when existingAllocations changes
+  useEffect(() => {
+    if (existingAllocations) {
+      setAllocations(existingAllocations);
+    }
+  }, [existingAllocations]);
+
   useEffect(() => {
     // When showing remaining, calculate from all allocations
     const sourceAllocations = showRemaining && allAllocations ? allAllocations : allocations;

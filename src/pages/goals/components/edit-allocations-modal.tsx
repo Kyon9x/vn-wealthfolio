@@ -115,25 +115,32 @@ export function EditAllocationsModal({
     fetchHistoricalValues();
   }, [open, goal.startDate, accounts]);
 
+  // Calculate available balances and baseline values for percentage calculation
+  const getBaselineValue = (account: Account): number => {
+    if (!goal.startDate) {
+      return currentAccountValues.get(account.id) || 0;
+    }
+
+    const startDate = new Date(goal.startDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (startDate > today) {
+      // Future start date - use current value
+      return currentAccountValues.get(account.id) || 0;
+    } else {
+      // Past start date - use historical value
+      return historicalAccountValues[account.id] ?? 0;
+    }
+  };
+
   // Calculate available balances
   // Available = (Historical Value at Start Date) - (Unallocated from other goals)
   const calculateAvailableBalances = () => {
     const balances: Record<string, number> = {};
 
     for (const account of accounts) {
-      // Use historical value if we have a start date, otherwise current value (fallback)
-      // Scenario 1 requires strictly using value at goal start.
-      // If historicalAccountValues is not populated yet (loading), we might default to 0 to prevent premature allocation?
-      // Or fallback to current?
-      // If we are still fetching, we shouldn't allow editing ideally.
-      // But let's use historical if present, else 0 if startDate present and not fetched?
-
-      let baselineValue = 0;
-      if (goal.startDate) {
-         baselineValue = historicalAccountValues[account.id] ?? 0;
-      } else {
-         baselineValue = currentAccountValues.get(account.id) || 0;
-      }
+      const baselineValue = getBaselineValue(account);
 
       // Sum allocations for this account from OTHER goals
       const allocatedToOtherGoals = allAllocations.reduce((sum, alloc) => {
@@ -275,40 +282,56 @@ export function EditAllocationsModal({
     setIsLoading(true);
     try {
       const updatedAllocations: GoalAllocation[] = [];
-      const allocationDate = new Date().toISOString().split("T")[0];
 
       for (const account of accounts) {
-        const alloc = allocations[account.id];
+         const alloc = allocations[account.id];
 
-        // Find existing allocation for this account (should always exist)
-        const existingAlloc = existingAllocations.find(
-          (a) => a.accountId === account.id
-        );
+         // Find existing allocation for this account
+         const existingAlloc = existingAllocations.find(
+           (a) => a.accountId === account.id
+         );
 
-        if (!existingAlloc) {
-          console.warn(`No existing allocation found for account ${account.id}`);
-          continue;
-        }
+         const allocationAmount = alloc?.allocationAmount || 0;
+         const allocatedPercent = alloc?.allocatedPercent || 0;
 
-        // Update existing allocation record with new values
-        updatedAllocations.push({
-          ...existingAlloc,
-          initialContribution: alloc?.allocationAmount || 0,
-          allocatedPercent: alloc?.allocatedPercent || 0,
-          allocationDate: existingAlloc.allocationDate || allocationDate,
-        });
-      }
+         if (existingAlloc) {
+           // Update existing allocation record with new values
+           // Don't override allocationDate - let backend backfill from goal dates if needed
+           updatedAllocations.push({
+             ...existingAlloc,
+             initialContribution: allocationAmount,
+             allocatedPercent: allocatedPercent,
+             allocationAmount: allocationAmount, // Required deprecated field
+             percentAllocation: 0, // Required deprecated field
+           } as any);
+         } else {
+           // Create new allocation if it doesn't exist
+           updatedAllocations.push({
+             id: `${goal.id}-${account.id}-${Date.now()}`,
+             goalId: goal.id,
+             accountId: account.id,
+             initialContribution: allocationAmount,
+             allocatedPercent: allocatedPercent,
+             allocationAmount: allocationAmount, // Required deprecated field
+             percentAllocation: 0, // Required deprecated field
+           } as any);
+         }
+       }
 
       await onSubmit(updatedAllocations);
 
-      // Invalidate queries to trigger re-renders
-      await queryClient.invalidateQueries({ queryKey: [QueryKeys.GOALS_ALLOCATIONS] });
-      await queryClient.invalidateQueries({ queryKey: [QueryKeys.GOALS] }); // Current value depends on allocations
+      // Wait a moment for backend to process, then refetch queries
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Refetch to ensure fresh data is immediately available
+      await Promise.all([
+        queryClient.refetchQueries({ queryKey: [QueryKeys.GOALS_ALLOCATIONS] }),
+        queryClient.refetchQueries({ queryKey: [QueryKeys.GOALS] }),
+        queryClient.refetchQueries({ queryKey: ["historicalValuation"] }),
+      ]);
 
       handleOpenChange(false);
-      toast.success("Allocations Updated", {
-        description: `Updated allocations for ${goal.title}`,
-      });
+      // Note: toast is handled by the mutation's onSuccess handler
     } catch (err) {
       toast.error("Failed to update allocations", {
         description: err instanceof Error ? err.message : "Unknown error",
@@ -338,6 +361,9 @@ export function EditAllocationsModal({
                     Unallocated Balance
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">
+                    Unallocated Percent
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">
                     Initial Contribution
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">
@@ -353,44 +379,59 @@ export function EditAllocationsModal({
 
                   return (
                     <tr key={account.id} className="border-t">
-                      <td className="sticky left-0 z-10 bg-muted/50 px-4 py-3 font-medium text-sm">
-                        {account.name}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="text-muted-foreground">
-                          {formatAmount(available ?? 0, account.currency, false)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Input
-                          type="number"
-                          value={alloc?.allocationAmount ?? ""}
-                          onChange={(e) =>
-                            handleAmountChange(account.id, Number(e.target.value))
-                          }
-                          placeholder="0.00"
-                          step="0.01"
-                          min="0"
-                          disabled={isLoading || isFetchingHistory}
-                          className={`w-32 ${hasError ? "border-red-500" : ""}`}
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <Input
-                          type="number"
-                          value={alloc?.allocatedPercent ?? ""}
-                          onChange={(e) =>
-                            handlePercentageChange(account.id, Number(e.target.value))
-                          }
-                          placeholder="0"
-                          step="0.1"
-                          min="0"
-                          max="100"
-                          disabled={isLoading || isFetchingHistory}
-                          className={`w-24 ${hasError ? "border-red-500" : ""}`}
-                        />
-                      </td>
-                    </tr>
+                       <td className="sticky left-0 z-10 bg-muted/50 px-4 py-3 font-medium text-sm">
+                         {account.name}
+                       </td>
+                       <td className="px-4 py-3 text-sm">
+                         <div className="text-muted-foreground">
+                           {formatAmount(available ?? 0, account.currency, false)}
+                         </div>
+                       </td>
+                       <td className="px-4 py-3 text-sm">
+                         <div className="text-muted-foreground">
+                           {(() => {
+                             // Unallocated percent = 100 - sum of all allocatedPercent for this account
+                             const otherGoalsPercent = allAllocations.reduce((sum, existingAlloc) => {
+                               if (existingAlloc.accountId === account.id && existingAlloc.goalId !== goal.id) {
+                                 return sum + (existingAlloc.allocatedPercent || 0);
+                               }
+                               return sum;
+                             }, 0);
+                             const unallocatedPercent = Math.max(0, 100 - otherGoalsPercent);
+                             return `${unallocatedPercent.toFixed(1)}%`;
+                           })()}
+                         </div>
+                       </td>
+                       <td className="px-4 py-3">
+                         <Input
+                           type="number"
+                           value={alloc?.allocationAmount ?? ""}
+                           onChange={(e) =>
+                             handleAmountChange(account.id, Number(e.target.value))
+                           }
+                           placeholder="0.00"
+                           step="0.01"
+                           min="0"
+                           disabled={isLoading || isFetchingHistory}
+                           className={`w-32 ${hasError ? "border-red-500" : ""}`}
+                         />
+                       </td>
+                       <td className="px-4 py-3">
+                         <Input
+                           type="number"
+                           value={alloc?.allocatedPercent ?? ""}
+                           onChange={(e) =>
+                             handlePercentageChange(account.id, Number(e.target.value))
+                           }
+                           placeholder="0"
+                           step="0.1"
+                           min="0"
+                           max="100"
+                           disabled={isLoading || isFetchingHistory}
+                           className={`w-24 ${hasError ? "border-red-500" : ""}`}
+                         />
+                       </td>
+                     </tr>
                   );
                 })}
               </tbody>

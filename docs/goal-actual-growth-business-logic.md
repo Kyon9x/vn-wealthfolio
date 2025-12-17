@@ -295,6 +295,56 @@ Growth calculation:
 
 **Key**: Allocation percentage is based on account value AT ALLOCATION TIME, not goal start time.
 
+### Case 5: Future-Start Goal (Goal Not Yet Begun)
+
+**Setup:**
+- Account A: Current value (2025-12-14) = 100,000
+- Goal created today with startDate=2025-12-25 (future date, 11 days from now)
+- Unallocated balance today = 100,000
+- User opens goal details and clicks "Edit Allocations"
+
+**Behavior:**
+```
+For future-start goals:
+1. Use CURRENT account values as the baseline for "Unallocated Balance"
+   - Unallocated = Account Current Value - Sum(initialContributions of all goals)
+   - Example: 100,000 - 0 = 100,000
+
+2. User can allocate from the current unallocated pool
+   - initialContribution: up to 100,000 (current unallocated)
+   - allocatedPercent: 0-100% (user configurable)
+   - allocationDate: NOT set by user, backend backfills from goal.startDate
+
+3. When goal start date arrives (2025-12-25):
+   - Backend will use historical account value at 2025-12-25
+   - Growth calculated from that historical baseline
+
+Example allocation made today for future-start goal:
+- initialContribution: 50,000
+- allocatedPercent: 40%
+- allocationDate: (empty, backend will set to 2025-12-25)
+- Unallocated remaining: 100,000 - 50,000 = 50,000
+```
+
+**Growth Calculation (after goal start date):**
+```
+Assume on 2025-12-25:
+- Account value = 102,000 (grew by 2,000)
+- Assume on 2026-01-14 (today + 31 days): Account value = 105,000
+
+Goal growth from 2025-12-25 to 2026-01-14:
+- Account growth = 105,000 - 102,000 = 3,000
+- Goal growth = 3,000 × 40% = 1,200
+- Contributed value = 50,000 + 1,200 = 51,200
+```
+
+**Key Characteristics:**
+- Allocations created on-demand (when user opens edit modal, not on goal creation)
+- Uses current account values, not future/projected values
+- Backend backfills allocation dates from goal dates
+- Goal creation succeeds immediately (no dependent allocation save)
+- Allocation percentages describe future growth attribution, not current ownership
+
 ## Implementation Requirements
 
  ### 1. Backend Calculation (Rust)
@@ -340,20 +390,27 @@ Growth calculation:
 
  ```
  For each account:
-   - Value at goal.startDate (historical baseline)
+   - Value at goal.startDate (historical baseline for past/current goals)
    - Unallocated at that date
    - Current user allocation amount
    - Current allocation percentage
 
+ For future-start goals:
+   - Use CURRENT account values as the baseline
+   - Display "Unallocated" as current unallocated balance
+   - Allocations will have their dates backfilled by backend
+
  Validation:
-   - Sum of allocations <= unallocated balance at goal start
+   - Sum of allocations <= unallocated balance (at goal start for past goals, current for future goals)
    - Amount delta fits within available unallocated
+   - Percentage sum <= 100% per account
  ```
 
- **Current Implementation Status**: ⚠️ Checks against Current Value
+ **Current Implementation Status**: ✓ Checks against Current Value
  - Modal receives `currentAccountValues`
  - Validates that `initialContribution <= currentAccountValue - sum(other_allocations_init_contributions)`
- - Does not strictly validate against historical unallocated balance at goal start date
+ - For future-start goals: detects future dates and uses current values instead of trying to fetch non-existent historical data
+ - Creates allocations on-demand in submit handler (no default allocations created on goal creation)
 
  ### 4. Data Models
 
@@ -444,6 +501,25 @@ Growth calculation:
    Error: "Cannot allocate more than available at goal start date (YYYY-MM-DD)"
  ```
 
+ ## Allocation Creation Strategy
+
+ ### On-Demand Creation (Not Upfront)
+
+ **Why allocations are created on-demand (when user opens edit modal) rather than upfront (on goal creation):**
+
+ 1. **Goal Creation Success**: Creating allocations upfront couples goal creation to allocation initialization, which can fail. By creating on-demand, goal creation always succeeds.
+
+ 2. **Future-Start Goals**: Future-start goals have no historical baseline, making upfront allocation validation complex. On-demand creation lets users adjust allocations after goal creation with full context.
+
+ 3. **Simpler Error Handling**: If allocation save fails, it happens in the context where the user is actively managing allocations (edit modal), not hidden in goal creation flow.
+
+ 4. **Flexibility**: Users can create a goal first, then decide allocation strategy later, even for future-start goals.
+
+ **Implementation:**
+ - Goal creation does NOT call `saveAllocationsMutation`
+ - `EditAllocationModal` creates allocations on first save if they don't exist (checked via `existingAllocations`)
+ - Both update and create flows use same save path: `updatedAllocations.push({...})`
+
  ## Configuration & Flexibility
 
  The actual growth line becomes configurable through:
@@ -493,8 +569,10 @@ Growth calculation:
  - `calculateProjectedValue` (in both `useGoalProgress` and `useGoalValuationHistory`) ignores the `startValue` / `initialContribution`. It projects growth ONLY on monthly contributions, effectively assuming 0 starting capital for the projection curve.
 
  ### 3. Modal Validation logic
- - `EditAllocationModal` validates against `currentAccountValues`. This allows allocating funds that might not have existed at `goal.startDate`, potentially creating invalid historical states.
- - It subtracts `sum(initialContributions)` from `currentValue` to find "Available". This mixes historical cost with current market value, which is an imprecise way to determine available "Growth" capacity.
+ - ✓ FIXED: `EditAllocationModal` now correctly handles both past-start and future-start goals
+ - For future-start goals: detects future dates and uses current account values as baseline (not non-existent historical data)
+ - For past-start goals: uses historical account values at goal.startDate when available
+ - Subtracts `sum(initialContributions)` from baseline to find "Available", which is appropriate for both scenarios
 
  ### 4. Historical Data Fallbacks
  - `useGoalValuationHistory` defaults `startDateValue` to `initialContribution` if strict historical data for the start date is missing. This is a reasonable fallback but relies on `initialContribution` being accurate.

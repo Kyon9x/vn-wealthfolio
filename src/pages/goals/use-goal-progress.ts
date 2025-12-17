@@ -1,5 +1,6 @@
 import { getGoalsAllocation } from "@/commands/goal";
 import { getHistoricalValuations } from "@/commands/portfolio";
+import { getMonthsDiff } from "@/lib/date-utils";
 import { useAccounts } from "@/hooks/use-accounts";
 import { useLatestValuations } from "@/hooks/use-latest-valuations";
 import { QueryKeys } from "@/lib/query-keys";
@@ -7,7 +8,7 @@ import type { AccountValuation, Goal, GoalAllocation } from "@/lib/types";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { parseISO } from "date-fns";
 import { useMemo } from "react";
-import { isGoalOnTrack } from "./lib/goal-utils";
+import { calculateProjectedValue, isGoalOnTrack } from "./lib/goal-utils";
 
 interface GoalProgress {
   goalId: string;
@@ -17,31 +18,6 @@ interface GoalProgress {
   expectedProgress: number; // percentage (based on timeline)
   isOnTrack: boolean;
   projectedValue: number; // projected value at today's date
-}
-
-/**
- * Calculate projected value using compound interest formula with regular contributions
- * FV = PV × (1 + r)^n + PMT × [((1 + r)^n - 1) / r]
- */
-function calculateProjectedValue(
-  startValue: number,
-  monthlyInvestment: number,
-  annualReturnRate: number,
-  monthsFromStart: number,
-): number {
-  if (monthsFromStart <= 0) return startValue;
-
-  const monthlyRate = annualReturnRate / 100 / 12;
-
-  if (monthlyRate === 0) {
-    return startValue + monthlyInvestment * monthsFromStart;
-  }
-
-  const compoundFactor = Math.pow(1 + monthlyRate, monthsFromStart);
-  const futurePV = startValue * compoundFactor;
-  const futureContributions = monthlyInvestment * ((compoundFactor - 1) / monthlyRate);
-
-  return futurePV + futureContributions;
 }
 
 /**
@@ -187,10 +163,7 @@ export function useGoalProgress(goals: Goal[] | undefined) {
       if (goal.startDate) {
         const goalStartDate = parseISO(goal.startDate);
         const today = new Date();
-        const yearDiff = today.getFullYear() - goalStartDate.getFullYear();
-        const monthDiff = today.getMonth() - goalStartDate.getMonth();
-        const daysDiff = today.getDate() - goalStartDate.getDate();
-        monthsFromStart = yearDiff * 12 + monthDiff + daysDiff / 30;
+        monthsFromStart = getMonthsDiff(goalStartDate, today);
       }
 
       // Use totalInitialContribution as the starting principal for projection

@@ -1,9 +1,24 @@
-/**
- * Format the remaining time until a due date
- * @param dueDate - ISO string or Date object
- * @returns Formatted string like "4 Years 2 Months" or "3 Months" or "15 Days"
- */
 import type { TFunction } from "i18next";
+
+/**
+ * Get the number of months (including fractional) between two dates
+ * Uses year and month difference, plus fractional month based on day difference
+ *
+ * @param startDate - Start date
+ * @param endDate - End date
+ * @returns Number of months (with fractional part based on day difference)
+ */
+export function getMonthsDiff(startDate: Date, endDate: Date): number {
+  const yearDiff = endDate.getFullYear() - startDate.getFullYear();
+  const monthDiff = endDate.getMonth() - startDate.getMonth();
+  const wholeMonths = yearDiff * 12 + monthDiff;
+
+  // Add fractional month based on days
+  const daysDiff = endDate.getDate() - startDate.getDate();
+  const fractionalMonth = daysDiff / 30; // Use 30 as average days per month
+
+  return wholeMonths + fractionalMonth;
+}
 
 /**
  * Format the remaining time until a due date
