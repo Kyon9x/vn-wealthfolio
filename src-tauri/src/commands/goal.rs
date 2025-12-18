@@ -28,31 +28,11 @@ pub struct AllocationConflictValidationResponse {
 
 // New hybrid allocation API request/response types
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CreateAllocationRequest {
-    pub goal_id: String,
-    pub account_id: String,
-    pub amount: f64,
-    pub allocation_percentage: f64,
-    pub allocation_date: String,
-    pub current_account_value: f64,
-}
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateAllocationAmountRequest {
-    pub allocation_id: String,
-    pub new_amount: f64,
-    pub current_account_value: f64,
-}
 
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateAllocationPercentageRequest {
-    pub allocation_id: String,
-    pub new_percentage: f64,
-}
+
+
+
 
 #[derive(Debug, Serialize)]
 pub struct AllocationValidationResponse {
@@ -165,7 +145,7 @@ pub async fn validate_allocation_conflict(
     state: State<'_, Arc<ServiceContext>>,
 ) -> Result<AllocationConflictValidationResponse, String> {
     debug!("Validating allocation conflict...");
-    
+
     let result = state.goal_service().validate_allocation_conflicts(
         &request.account_id,
         &request.start_date,
@@ -195,7 +175,7 @@ pub async fn get_unallocated_balance(
     state: State<'_, Arc<ServiceContext>>,
 ) -> Result<UnallocatedBalanceResponse, String> {
     debug!("Getting unallocated balance for account...");
-    
+
     let unallocated_balance = state
         .goal_service()
         .get_unallocated_balance(&account_id, current_account_value)
@@ -204,30 +184,7 @@ pub async fn get_unallocated_balance(
     Ok(UnallocatedBalanceResponse { unallocated_balance })
 }
 
-#[tauri::command]
-pub async fn validate_unallocated_balance(
-    account_id: String,
-    allocation_amount: f64,
-    current_account_value: f64,
-    state: State<'_, Arc<ServiceContext>>,
-) -> Result<AllocationValidationResponse, String> {
-    debug!("Validating unallocated balance...");
-    
-    let result = state
-        .goal_service()
-        .validate_unallocated_balance(&account_id, allocation_amount, current_account_value);
 
-    match result {
-        Ok(()) => Ok(AllocationValidationResponse {
-            valid: true,
-            message: String::new(),
-        }),
-        Err(e) => Ok(AllocationValidationResponse {
-            valid: false,
-            message: e.to_string(),
-        }),
-    }
-}
 
 #[tauri::command]
 pub async fn validate_allocation_percentages(
@@ -237,7 +194,7 @@ pub async fn validate_allocation_percentages(
     state: State<'_, Arc<ServiceContext>>,
 ) -> Result<AllocationValidationResponse, String> {
     debug!("Validating allocation percentages...");
-    
+
     let result = state
         .goal_service()
         .validate_allocation_percentages(&account_id, new_percentage, exclude_allocation_id.as_deref());
@@ -254,19 +211,7 @@ pub async fn validate_allocation_percentages(
     }
 }
 
-#[tauri::command]
-pub async fn get_goal_allocations(
-    goal_id: String,
-    state: State<'_, Arc<ServiceContext>>,
-) -> Result<Vec<GoalsAllocation>, String> {
-    debug!("Getting allocations for goal...");
-    
-    state
-        .goal_service()
-        .get_repository()
-        .get_allocations_for_goal(&goal_id)
-        .map_err(|e| e.to_string())
-}
+
 
 #[tauri::command]
 pub async fn get_allocation_versions(
