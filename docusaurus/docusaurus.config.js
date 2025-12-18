@@ -12,10 +12,12 @@ module.exports = {
   deploymentBranch: "gh-pages",
   onBrokenLinks: "ignore",
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: "ignore",
     },
   },
+  themes: ["@docusaurus/theme-mermaid"],
   i18n: {
     defaultLocale: "en",
     locales: ["en"],

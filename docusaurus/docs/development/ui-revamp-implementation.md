@@ -3,7 +3,7 @@
 ## Overview
 
 This guide documents the comprehensive UI revamp implemented to transform
-WealthFolio from its previous earthy "Flexoki" theme to a **Modern Fintech**
+WealthVN from its previous earthy "Flexoki" theme to a **Modern Fintech**
 aesthetic. The redesign emphasizes trust, precision, speed, and a premium user
 experience.
 
@@ -588,7 +588,7 @@ font-family: "Inter", sans-serif;
 
 ## Conclusion
 
-The UI revamp successfully transforms WealthFolio into a modern, professional
+The UI revamp successfully transforms WealthVN into a modern, professional
 fintech application. The new design system provides:
 
 - Enhanced visual hierarchy and readability

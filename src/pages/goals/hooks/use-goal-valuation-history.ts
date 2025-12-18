@@ -439,24 +439,16 @@ export function useGoalValuationHistory(
     const monthlyInvestment = goal.monthlyInvestment ?? 0;
     const annualReturnRate = goal.targetReturnRate ?? 0;
 
-    // Find starting value for projection
-    // For projection, the starting principal is the sum of all initial contributions.
-    // This represents the "baseline" value at the start of the goal.
-    let startValue = 0;
-    allocationDetailsMap.forEach((details) => {
-        startValue += details.initialContribution;
-    });
-
-
     // Build chart data points
     return dateIntervals.map((date) => {
       const dateStr = format(date, "yyyy-MM-dd");
 
       // Calculate projected value using daily compounding for precision
-      // Convert monthly investment to daily equivalent (monthly / 30)
+      // Projected value starts from $0 (excludes initial contributions)
+      // and grows only from monthly contributions + compound interest
       const dailyInvestment = monthlyInvestment / 30;
       const projected = calculateProjectedValueByDate(
-        startValue,
+        0,  // Projected from $0, monthly contributions only
         dailyInvestment,
         annualReturnRate,
         goalStartDate,

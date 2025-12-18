@@ -21,9 +21,9 @@ async function ensureDir(dir) {
 
 async function generateTypeScriptAPIs() {
   console.log('  Generating TypeScript API docs...');
-  
+
   await ensureDir(path.join(docsDir, 'typescript'));
-  
+
   // Generate placeholder files that will be filled during actual API extraction
   const files = [
     { name: 'types.md', title: 'Core Type Definitions' },
@@ -44,7 +44,7 @@ Auto-generated API documentation from TypeScript sources.
 
 ## Overview
 
-This section documents the ${file.title.toLowerCase()} for Wealthfolio's TypeScript APIs.
+This section documents the ${file.title.toLowerCase()} for WealthVN's TypeScript APIs.
 
 ### Source Locations
 
@@ -62,15 +62,15 @@ See the [Development Guide](../../development/overview) for setup instructions.
       content
     );
   }
-  
+
   console.log('  ✓ TypeScript API docs generated');
 }
 
 async function generateRustAPIs() {
   console.log('  Generating Rust API docs...');
-  
+
   await ensureDir(path.join(docsDir, 'rust'));
-  
+
   const files = [
     { name: 'tauri-commands.md', title: 'Tauri Commands Reference' },
     { name: 'web-api.md', title: 'Web API Endpoints' },
@@ -89,7 +89,7 @@ Auto-generated API documentation from Rust sources.
 
 ## Overview
 
-This section documents the ${file.title.toLowerCase()} for Wealthfolio's Rust backend.
+This section documents the ${file.title.toLowerCase()} for WealthVN's Rust backend.
 
 ### Source Locations
 
@@ -107,7 +107,7 @@ See the [Development Guide](../../development/overview) for setup instructions.
       content
     );
   }
-  
+
   console.log('  ✓ Rust API docs generated');
 }
 
@@ -115,9 +115,9 @@ See the [Development Guide](../../development/overview) for setup instructions.
 
 async function generateOpenAPISpec() {
   console.log('  Generating OpenAPI documentation...');
-  
+
   await ensureDir(path.join(docsDir, 'openapi'));
-  
+
   const content = `---
 title: OpenAPI Specification
 ---
@@ -130,7 +130,7 @@ Complete OpenAPI 3.0 specification for all HTTP endpoints.
 
 ## Overview
 
-The OpenAPI specification provides a machine-readable definition of the Wealthfolio HTTP API.
+The OpenAPI specification provides a machine-readable definition of the WealthVN HTTP API.
 
 ### Specification Location
 
@@ -155,18 +155,18 @@ See the [Development Guide](../../development/overview) for setup instructions.
     path.join(docsDir, 'openapi', 'spec.md'),
     content
   );
-  
+
   console.log('  ✓ OpenAPI documentation generated');
 }
 
 async function main() {
   try {
     console.log('\nGenerating API documentation...\n');
-    
+
     await generateTypeScriptAPIs();
     await generateRustAPIs();
     await generateOpenAPISpec();
-    
+
     console.log('\n✓ API documentation generated successfully\n');
     process.exit(0);
   } catch (err) {

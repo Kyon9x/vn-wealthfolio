@@ -7,7 +7,7 @@ sidebar_label: Goals Logic
 # Goal Page Business Logic
 
 This document describes the business logic, formulas, and component interactions
-for the Goals feature in Wealthfolio.
+for the Goals feature in WealthVN.
 
 ## Table of Contents
 

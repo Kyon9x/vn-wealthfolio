@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # Development Overview
 
-This guide provides an overview of the Wealthfolio development environment and common workflows.
+This guide provides an overview of the WealthVN development environment and common workflows.
 
 ## Prerequisites
 
@@ -17,7 +17,7 @@ This guide provides an overview of the Wealthfolio development environment and c
 ## Repository Structure
 
 ```
-wealthfolio/
+wealthvn/
 ├── src/                    # Frontend application (React + Vite)
 │   ├── pages/             # Page components
 │   ├── components/        # Reusable UI components
@@ -48,8 +48,8 @@ wealthfolio/
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/chipheo00/vn-wealthfolio.git
-cd wealthfolio
+git clone https://github.com/chipheo00/vn-wealthvn.git
+cd wealthvn
 pnpm install
 ```
 
@@ -252,7 +252,7 @@ import { getRunEnv, invokeTauri, invokeWeb } from '../adapters';
 
 export async function getMyData(id: string): Promise<MyData> {
   const env = getRunEnv();
-  
+
   if (env === 'desktop') {
     return invokeTauri('get_my_data', { id });
   } else {
@@ -353,7 +353,7 @@ pnpm install
 
 ## Need Help?
 
-- Check existing issues on [GitHub](https://github.com/chipheo00/vn-wealthfolio/issues)
+- Check existing issues on [GitHub](https://github.com/chipheo00/vn-wealthvn/issues)
 - Read relevant documentation sections
 - Ask in GitHub Discussions
 - Review similar code examples in the codebase

@@ -4,7 +4,7 @@
 
 The VN Market Assets Synchronization system provides comprehensive market data
 integration for Vietnamese financial instruments. This feature enables
-WealthFolio to automatically fetch, cache, and synchronize asset information
+WealthVN to automatically fetch, cache, and synchronize asset information
 from multiple Vietnamese market data providers.
 
 ## Architecture

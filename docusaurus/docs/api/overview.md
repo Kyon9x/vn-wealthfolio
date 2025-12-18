@@ -5,7 +5,7 @@ sidebar_position: 1
 
 # API Reference
 
-This section contains comprehensive API documentation for all Wealthfolio services:
+This section contains comprehensive API documentation for all WealthVN services:
 
 ## TypeScript APIs
 
@@ -67,7 +67,7 @@ This ensures documentation stays in sync with the actual code.
 
 ## API Versioning
 
-The Wealthfolio API follows semantic versioning:
+The WealthVN API follows semantic versioning:
 
 - **Major**: Breaking changes to public APIs
 - **Minor**: New features, backward compatible
@@ -77,8 +77,8 @@ See the [Changelog](../../CHANGE_LOG.md) for detailed version history.
 
 ## Support & Resources
 
-- **[GitHub Issues](https://github.com/chipheo00/vn-wealthfolio/issues)** - Report bugs
-- **[GitHub Discussions](https://github.com/chipheo00/vn-wealthfolio/discussions)** - Ask questions
+- **[GitHub Issues](https://github.com/chipheo00/vn-wealthvn/issues)** - Report bugs
+- **[GitHub Discussions](https://github.com/chipheo00/vn-wealthvn/discussions)** - Ask questions
 - **[Development Guide](../development/overview)** - General development setup
 
 ---

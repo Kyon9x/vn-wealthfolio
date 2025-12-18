@@ -2,23 +2,23 @@
 slug: /
 sidebar_position: 1
 title: Introduction
-description: Welcome to Wealthfolio Developer Documentation
+description: Welcome to WealthVN Developer Documentation
 ---
 
-# Welcome to Wealthfolio
+# Welcome to WealthVN
 
-Wealthfolio is a comprehensive wealth management application for Vietnam's financial market. This documentation site provides technical guides for developers, architects, and contributors.
+WealthVN is a comprehensive wealth management application for Vietnam's financial market. This documentation site provides technical guides for developers, architects, and contributors.
 
 ## Quick Links
 
 - **[Getting Started](./development/overview)** - Setup your development environment
 - **[API Reference](./api/overview)** - Complete API documentation for all services
-- **[Addon Development](./addons/index)** - Build custom addons for Wealthfolio
+- **[Addon Development](./addons/index)** - Build custom addons for WealthVN
 - **[VN Market Integration](./vn-market/index)** - Vietnamese market data integration
 
-## What is Wealthfolio?
+## What is WealthVN?
 
-Wealthfolio is built as a modern web and desktop application with:
+WealthVN is built as a modern web and desktop application with:
 
 - **React + Vite frontend** with Tailwind CSS v4 and shadcn-based UI components
 - **Desktop app via Tauri** (Rust) with local SQLite storage
@@ -121,18 +121,18 @@ Choose your learning path based on your interests:
 
 ## Contributing
 
-Wealthfolio is open to community contributions. To contribute:
+WealthVN is open to community contributions. To contribute:
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes with tests
 4. Submit a pull request
 
-See [Contributing Guide](https://github.com/chipheo00/vn-wealthfolio#contributing) for details.
+See [Contributing Guide](https://github.com/chipheo00/vn-wealthvn#contributing) for details.
 
 ## License
 
-Wealthfolio is licensed under the MIT License. See LICENSE file for details.
+WealthVN is licensed under the MIT License. See LICENSE file for details.
 
 ---
 
