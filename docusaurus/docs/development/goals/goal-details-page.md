@@ -24,6 +24,46 @@ The Goal Detail Page is designed to answer three key questions for the user:
 1. **"How am I doing?"** (Progress, On Track/Off Track status)
 2. **"Will I reach my goal?"** (Growth Projection Chart)
 3. **"How am I funding this?"** (Allocations)
+### Details
+- When user create a goal with minimal info: (Name, Target Amount,Return Rate, Start Date, Due Date), the system will calculate the monthly investment based on the goal's duration, target amount, and return rate.
+- Initial the allocations will be set as 0 for all accounts.
+- When user open the Goal detail page, user can see the Overview card, Growth Projection Chart, and Allocations section.
+- Chart details:
+  - Projected and actual value should be calculate by date.
+  - Projected line:
+    - Show the projected value depend on period selected, and the compounding formula for date.
+    - In chart, projected line start on goal start date (initial value = daily investment) and end on goal due date(value ~ goal target amount).
+    - In weeks period, the projected line will be show the projected value depend on period selected, and the compounding formula for date(end of weeks).
+    - In months period, the projected line will be show the projected value depend on period selected, and the compounding formula for date(end of months).
+    - In years period, the projected line will be show the projected value depend on period selected, and the compounding formula for date(end of years).
+    - In all period, the projected line will be show the projected value depend on period selected, and the compounding formula for date(end of all).
+    - The last point's projected value on chart = the Projected future value in Overview card.
+  - Actual line:
+    - Show the actual value depend on period selected.
+    - In chart, the current week, month or year value should be equal Current Progress value in Overview card.
+    - In chart, actual line start on goal start date (initial value = initialContribution) and end on goal due date(value =real contributed value from allocations).
+    - In weeks period, the actual line will be show the actual value depend on period selected(end of weeks).
+    - In months period, the actual line will be show the actual value depend on period selected(end of months).
+    - In years period, the actual line will be show the actual value depend on period selected(end of years).
+    - In all period, the actual line will be show the actual value depend on period selected(end of all).
+    - The last point's actual value on chart = the Actual future value in Overview card.
+  - If start date or end date is middle day of week, month, year -> add 1 more point (with label 'Start:DD-MM-YYYY' or 'End:DD-MM-YYYY') on time axis. For the end point of the goal, replace the last point on chart with the end point (label and value).
+  - Chart progress status. We have status for goal is on track or off track. the logic is. if today's actual contributed value > projected value -> goal is on track. else goal is off track. The color of actual line will be green if goal is on track and red if goal is off track.
+  -
+- Overview card:
+  - Target Amount: Large display of the goal's target.
+  - Current Progress: Percentage completion and current currency value.
+  - Metrics Grid: Compact 2x2 grid showing:
+    - Monthly Investment (Calculate by goal duration, target amount, and return rate)
+    - Target Return Rate (User input)
+    - Time Remaining (Calculate by goal start date and due date and consider today to let user know how many time remaining to reach the goal)
+    - Projected Future Value (Calculate by goal duration, target amount, and return rate)
+
+ Example:
+  - This is example of goal: Mua nha, 1000000000, 8%, 5 year, 1/1/2025, 1/1/2030
+  - The monthly investment will be 16,917,491.49.
+  - The projected future value will be 1,000,000,000 for period 'Al time'(This value should be reuse the last value in chart at the same time period). When user change the time period, the projected future value will be updated based on the selected time period.
+  - Current Progress ( 13.7% - 137,335,735.3 ) Current progress is the percentage of the goal's target amount that has been invested. The contributed value is the total amount that has been invested.
 
 ## Page Structure
 
@@ -87,12 +127,12 @@ The chart combines two distinct data sets into a unified time series:
 #### Time Periods
 The hook `useGoalValuationHistory` handles data aggregation based on the selected period:
 
-| Period | Logic | Range |
-| :--- | :--- | :--- |
-| **Weeks** | End-of-week values | +/- 12 weeks from today |
-| **Months** | End-of-month values | +/- 12 months from today |
-| **Years** | End-of-year values | +/- 3-5 years from today |
-| **All** | Yearly intervals | From Goal Start Date to Due Date |
+| Period     | Logic               | Range                            |
+| :--------- | :------------------ | :------------------------------- |
+| **Weeks**  | End-of-week values  | +/- 12 weeks from today          |
+| **Months** | End-of-month values | +/- 12 months from today         |
+| **Years**  | End-of-year values  | +/- 3-5 years from today         |
+| **All**    | Yearly intervals    | From Goal Start Date to Due Date |
 
 **Note**: For the "All" view, the chart ensures the exact **Goal Due Date** is included as the final data point to show the target completion value.
 
@@ -166,9 +206,117 @@ const actualColor = onTrack ? "var(--chart-actual-on-track)" : "var(--chart-actu
 | Action | Description |
 | :--- | :--- |
 | **Change Time Period** | Clicking the toggle (Weeks/Months/Years) updates the `timePeriod` state, triggering `useGoalValuationHistory` to re-aggregate data. |
-| **Edit Goal** | Opens `GoalEditModal` to update title, target, dates, etc. |
-| **Edit Allocations** | Opens `EditAllocationsModal` to change funding sources. |
-| **Delete Allocation** | Clicking the trash icon in `AllocationHistoryTable` calls `deleteAllocationMutation` to remove funding. |
+| **Edit Goal**          | Opens `GoalEditModal` to update title, target, dates, etc.                                                                          |
+| **Edit Allocations**   | Opens `EditAllocationsModal` to change funding sources.                                                                             |
+| **Delete Allocation**  | Clicking the trash icon in `AllocationHistoryTable` calls `deleteAllocationMutation` to remove funding.                             |
+
+---
+
+## Data Flow Diagram
+
+This section illustrates how data flows through the Goal Detail Page frontend.
+
+### Page Data Flow
+
+```mermaid
+flowchart TB
+    subgraph Hooks["Data Hooks"]
+        H_Goals["useQuery(GOALS)"]
+        H_Alloc["useQuery(GOALS_ALLOCATIONS)"]
+        H_Accounts[useAccounts]
+        H_Latest[useLatestValuations]
+        H_Progress[useGoalProgress]
+        H_ValHist[useGoalValuationHistory]
+    end
+
+    subgraph Page["GoalDetailsPage"]
+        STATE[/"timePeriod state"/]
+        CALC["Calculate projections & on-track status"]
+    end
+
+    subgraph Components["UI Components"]
+        CHART[Growth Projection Chart]
+        OVERVIEW[Overview Card]
+        GANTT[Allocation Settings]
+        TABLE[Allocation History Table]
+    end
+
+    H_Goals --> Page
+    H_Alloc --> Page
+    H_Accounts --> H_Latest
+    H_Latest --> Page
+    H_Goals --> H_Progress
+    H_Alloc --> H_Progress
+    H_Progress --> Page
+    STATE --> H_ValHist
+    H_ValHist --> CHART
+
+    Page --> CALC
+    CALC --> OVERVIEW
+    Page --> GANTT
+    Page --> TABLE
+```
+
+### Chart Data Flow
+
+```mermaid
+flowchart LR
+    subgraph Input
+        GOAL[Goal]
+        PERIOD[Time Period]
+        ALLOCS[Allocations]
+        HIST_VALS[Historical Valuations]
+    end
+
+    subgraph Processing["useGoalValuationHistory"]
+        GEN_DATES[Generate Date Intervals]
+        CALC_ACTUAL[Calculate Actual Values]
+        CALC_PROJ[Calculate Projected Values]
+        BUILD[Build Chart Data Points]
+    end
+
+    subgraph Output
+        CHART_DATA["chartData[]"]
+    end
+
+    GOAL --> GEN_DATES
+    PERIOD --> GEN_DATES
+    ALLOCS --> CALC_ACTUAL
+    HIST_VALS --> CALC_ACTUAL
+    GEN_DATES --> BUILD
+    CALC_ACTUAL --> BUILD
+    GOAL --> CALC_PROJ
+    CALC_PROJ --> BUILD
+    BUILD --> CHART_DATA
+```
+
+### Goal Progress Flow
+
+```mermaid
+flowchart LR
+    subgraph Input
+        GOALS[Goals]
+        ALLOCS[Allocations]
+        VALS[Latest Valuations]
+    end
+
+    subgraph Processing["useGoalProgress"]
+        FILTER[Filter by Goal]
+        CALC_VAL["Calculate Current Value"]
+        CALC_TRACK[Determine On-Track Status]
+    end
+
+    subgraph Output
+        PROGRESS[GoalProgress]
+    end
+
+    GOALS --> FILTER
+    ALLOCS --> FILTER
+    VALS --> CALC_VAL
+    FILTER --> CALC_VAL
+    CALC_VAL --> CALC_TRACK
+    CALC_TRACK --> PROGRESS
+```
 
 ---
 

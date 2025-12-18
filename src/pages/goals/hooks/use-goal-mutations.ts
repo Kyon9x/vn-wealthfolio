@@ -5,97 +5,95 @@ import { GoalAllocation } from "@/lib/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-export const useGoalMutations = () => {
+// ============ TYPES ============
+export interface GoalMutations {
+  addGoalMutation: ReturnType<typeof useMutation>;
+  updateGoalMutation: ReturnType<typeof useMutation>;
+  deleteGoalMutation: ReturnType<typeof useMutation>;
+  saveAllocationsMutation: ReturnType<typeof useMutation>;
+  updateAllocationMutation: ReturnType<typeof useMutation>;
+  deleteAllocationMutation: ReturnType<typeof useMutation>;
+}
+
+// ============ HELPERS ============
+const handleSuccess = (queryClient: ReturnType<typeof useQueryClient>, message: string, invalidateKeys: string[]) => {
+  invalidateKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
+  toast.success(message);
+};
+
+const handleError = (action: string, error: Error) => {
+  logger.error(`Error ${action}: ${error}`);
+  toast.error("Uh oh! Something went wrong.", {
+    description: `There was a problem ${action}.`,
+  });
+};
+
+// ============ HOOK ============
+export const useGoalMutations = (): GoalMutations => {
   const queryClient = useQueryClient();
-
-  const handleSuccess = (message: string, invalidateKeys: string[]) => {
-    invalidateKeys.forEach((key) => queryClient.invalidateQueries({ queryKey: [key] }));
-    toast.success(message);
-  };
-
-  const handleError = (action: string) => {
-    toast.error("Uh oh! Something went wrong.", {
-      description: `There was a problem ${action}.`,
-    });
-  };
 
   const addGoalMutation = useMutation({
     mutationFn: createGoal,
     onSuccess: () =>
-      handleSuccess("Goal added successfully. Start adding or importing this goal activities.", [
-        QueryKeys.GOALS,
-      ]),
-    onError: (e) => {
-      logger.error(`Error adding goal: ${e}`);
-      handleError("adding this goal");
-    },
+      handleSuccess(
+        queryClient,
+        "Goal added successfully. Start adding or importing this goal activities.",
+        [QueryKeys.GOALS]
+      ),
+    onError: (e) => handleError("adding this goal", e),
   });
 
   const updateGoalMutation = useMutation({
     mutationFn: updateGoal,
-    onSuccess: () => handleSuccess("Goal updated successfully.", [QueryKeys.GOALS]),
-    onError: (e) => {
-      logger.error(`Error updating goal: ${e}`);
-      handleError("updating this goal");
-    },
+    onSuccess: () => handleSuccess(queryClient, "Goal updated successfully.", [QueryKeys.GOALS]),
+    onError: (e) => handleError("updating this goal", e),
   });
 
   const deleteGoalMutation = useMutation({
     mutationFn: deleteGoal,
     onSuccess: () =>
-      handleSuccess("Goal deleted successfully.", [QueryKeys.GOALS, QueryKeys.GOALS_ALLOCATIONS]),
-    onError: (e) => {
-      logger.error(`Error deleting goal: ${e}`);
-      handleError("deleting this goal");
-    },
+      handleSuccess(queryClient, "Goal deleted successfully.", [
+        QueryKeys.GOALS,
+        QueryKeys.GOALS_ALLOCATIONS,
+      ]),
+    onError: (e) => handleError("deleting this goal", e),
   });
 
   const saveAllocationsMutation = useMutation({
     mutationFn: updateGoalsAllocations,
     onSuccess: () =>
-      handleSuccess("Allocation saved successfully.", [
+      handleSuccess(queryClient, "Allocation saved successfully.", [
         QueryKeys.GOALS,
         QueryKeys.GOALS_ALLOCATIONS,
       ]),
-    onError: (e) => {
-      logger.error(`Error saving allocations: ${e}`);
-      console.error("Error saving allocations:", e);
-      handleError("saving the allocations");
-    },
+    onError: (e) => handleError("saving the allocations", e),
   });
 
   const updateAllocationMutation = useMutation({
     mutationFn: async (allocation: GoalAllocation) => {
-      // Update a single allocation through the backend
       await updateGoalsAllocations([allocation]);
     },
     onSuccess: () =>
-      handleSuccess("Allocation updated successfully.", [
+      handleSuccess(queryClient, "Allocation updated successfully.", [
         QueryKeys.GOALS_ALLOCATIONS,
       ]),
-    onError: (e) => {
-      logger.error(`Error updating allocation: ${e}`);
-      handleError("updating the allocation");
-    },
+    onError: (e) => handleError("updating the allocation", e),
   });
 
   const deleteAllocationMutation = useMutation({
     mutationFn: deleteGoalAllocation,
     onSuccess: () =>
-      handleSuccess("Allocation deleted successfully.", [
+      handleSuccess(queryClient, "Allocation deleted successfully.", [
         QueryKeys.GOALS_ALLOCATIONS,
       ]),
-    onError: (e) => {
-      logger.error(`Error deleting allocation: ${e}`);
-      handleError("deleting the allocation");
-    },
+    onError: (e) => handleError("deleting the allocation", e),
   });
 
   return {
-    deleteGoalMutation,
-    saveAllocationsMutation,
     addGoalMutation,
     updateGoalMutation,
+    deleteGoalMutation,
+    saveAllocationsMutation,
     updateAllocationMutation,
     deleteAllocationMutation,
   };
