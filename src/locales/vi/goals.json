@@ -261,7 +261,12 @@
       "allocationRequired": "Phân bổ phải lớn hơn 0"
     },
     "saveFailed": "Không thể lưu phân bổ",
-    "unknownError": "Lỗi không xác định"
+    "unknownError": "Lỗi không xác định",
+    "summary": "Tóm tắt phân bổ",
+    "reviewAllocation": "Điều chỉnh phân bổ cho tài khoản này",
+    "currentBalance": "Số dư hiện tại",
+    "unallocatedGrowth": "Tăng trưởng chưa phân bổ",
+    "amount": "Số tiền phân bổ"
   },
   "editAllocationsModal": {
     "saveFailed": "Không thể cập nhật phân bổ",
@@ -276,6 +281,11 @@
     "initialContribution": "Đóng góp ban đầu",
     "allocatedPercent": "Tỷ lệ phân bổ",
     "summary": "Tóm tắt",
+    "amount": "Số tiền",
+    "available": "Số dư khả dụng",
+    "reviewAllocations": "Xem xét và điều chỉnh phân bổ danh mục đầu tư",
+    "totalAllocated": "Tổng đã phân bổ",
+    "accounts": "Tài khoản",
     "errors": {
       "amountNegative": "Số tiền không được âm"
     }

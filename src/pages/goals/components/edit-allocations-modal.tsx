@@ -1,5 +1,7 @@
 import { getHistoricalValuations } from "@/commands/portfolio";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +10,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { QueryKeys } from "@/lib/query-keys";
 import { Account, Goal, GoalAllocation } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatAmount } from "@wealthvn/ui";
+import { Percent } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -343,140 +349,162 @@ export function EditAllocationsModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col bg-background/95 backdrop-blur-xl">
         <DialogHeader>
-          <DialogTitle>{t("editModal.title", { title: goal.title })}</DialogTitle>
+          <DialogTitle className="text-xl font-bold">{t("editModal.title", { title: goal.title })}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Allocations Table */}
-          <div className="relative overflow-x-auto rounded-md border">
-            <table className="min-w-full table-auto">
-              <thead>
-                <tr className="bg-muted">
-                  <th className="sticky left-0 z-10 px-4 py-3 text-left text-sm font-semibold">
-                    {t("editAllocationsModal.account")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">
-                    {t("editAllocationsModal.unallocatedBalance")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">
-                    {t("editAllocationsModal.unallocatedPercent")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">
-                    {t("editAllocationsModal.initialContribution")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">
-                    {t("editAllocationsModal.allocatedPercent")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {accounts.map((account) => {
-                  const alloc = allocations[account.id];
-                  const available = availableBalances[account.id];
-                  const hasError = errors[account.id];
+        <div className="flex-1 overflow-y-auto space-y-6 py-2 px-1">
+          {/* Summary Card */}
+          <Card className="bg-primary/5 border-primary/20 shadow-none">
+            <CardContent className="p-4 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+              <div>
+                <h4 className="text-sm font-semibold text-primary mb-1">{t("editAllocationsModal.summary")}</h4>
+                <p className="text-xs text-muted-foreground">
+                  {t("editAllocationsModal.reviewAllocations")}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {Object.values(allocations).some(a => (a.allocationAmount > 0 || a.allocatedPercent > 0)) && (
+                  <Badge variant="outline" className="bg-background text-primary border-primary/30">
+                    {t("editAllocationsModal.totalAllocated")}: {Object.entries(allocations).filter(([_, v]) => v.allocationAmount > 0 || v.allocatedPercent > 0).length} {t("editAllocationsModal.accounts")}
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-                  return (
-                    <tr key={account.id} className="border-t">
-                       <td className="sticky left-0 z-10 bg-muted/50 px-4 py-3 font-medium text-sm">
-                         {account.name}
-                       </td>
-                       <td className="px-4 py-3 text-sm">
-                         <div className="text-muted-foreground">
-                           {formatAmount(available ?? 0, account.currency, false)}
-                         </div>
-                       </td>
-                       <td className="px-4 py-3 text-sm">
-                         <div className="text-muted-foreground">
-                           {(() => {
-                             // Unallocated percent = 100 - sum of all allocatedPercent for this account
-                             const otherGoalsPercent = allAllocations.reduce((sum, existingAlloc) => {
-                               if (existingAlloc.accountId === account.id && existingAlloc.goalId !== goal.id) {
-                                 return sum + (existingAlloc.allocatedPercent || 0);
-                               }
-                               return sum;
-                             }, 0);
-                             const unallocatedPercent = Math.max(0, 100 - otherGoalsPercent);
-                             return `${unallocatedPercent.toFixed(1)}%`;
-                           })()}
-                         </div>
-                       </td>
-                       <td className="px-4 py-3">
-                         <Input
-                           type="number"
-                           value={alloc?.allocationAmount ?? ""}
-                           onChange={(e) =>
-                             handleAmountChange(account.id, Number(e.target.value))
-                           }
-                           placeholder="0.00"
-                           step="0.01"
-                           min="0"
-                           disabled={isLoading || isFetchingHistory}
-                           className={`w-32 ${hasError ? "border-red-500" : ""}`}
-                         />
-                       </td>
-                       <td className="px-4 py-3">
-                         <Input
-                           type="number"
-                           value={alloc?.allocatedPercent ?? ""}
-                           onChange={(e) =>
-                             handlePercentageChange(account.id, Number(e.target.value))
-                           }
-                           placeholder="0"
-                           step="0.1"
-                           min="0"
-                           max="100"
-                           disabled={isLoading || isFetchingHistory}
-                           className={`w-24 ${hasError ? "border-red-500" : ""}`}
-                         />
-                       </td>
-                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <div className="space-y-4">
+            {accounts.map((account) => {
+              const alloc = allocations[account.id];
+              const available = availableBalances[account.id];
+              const hasError = errors[account.id];
 
-          {/* Error messages */}
-          {Object.entries(errors).map(([accountId, error]) => {
-            const account = accounts.find((a) => a.id === accountId);
-            return (
-              error && (
-                <div key={accountId} className="rounded-md bg-red-50 p-3">
-                  <p className="text-sm text-red-800">
-                    <span className="font-semibold">{account?.name}:</span> {error}
-                  </p>
-                </div>
-              )
-            );
-          })}
+              const otherGoalsPercent = allAllocations.reduce((sum, existingAlloc) => {
+                if (existingAlloc.accountId === account.id && existingAlloc.goalId !== goal.id) {
+                  return sum + (existingAlloc.allocatedPercent || 0);
+                }
+                return sum;
+              }, 0);
+              const unallocatedPercent = Math.max(0, 100 - otherGoalsPercent);
 
-          {/* Summary */}
-          <div className="rounded-lg bg-blue-50 p-4">
-            <p className="text-xs font-semibold text-blue-900">{t("editAllocationsModal.summary")}</p>
-            <div className="mt-2 space-y-1 text-sm text-blue-800">
-              {accounts.map((account) => {
-                const alloc = allocations[account.id];
-                if (!alloc || (alloc.allocationAmount === 0 && alloc.allocatedPercent === 0)) return null;
-                return (
-                  <div key={account.id} className="flex justify-between">
-                    <span>{account.name}:</span>
-                    <span>
-                      {formatAmount(alloc.allocationAmount, account.currency, false)} ({alloc.allocatedPercent.toFixed(1)}%)
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
+              // Get currency symbol
+              const currencySymbol = (0).toLocaleString('en-US', { style: 'currency', currency: account.currency, minimumFractionDigits: 0 }).replace(/\d/g, '').trim();
+
+              return (
+                <Card
+                  key={account.id}
+                  className={cn(
+                    "transition-all duration-200 border-muted hover:border-primary/50 hover:shadow-md",
+                    hasError && "border-destructive/50 bg-destructive/5"
+                  )}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex flex-col md:flex-row gap-6">
+
+                      {/* Left: Account Info */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="font-semibold text-base flex items-center gap-2">
+                            {account.name}
+                            {/* Account Type or Icon could go here */}
+                          </div>
+                          <Badge variant="secondary" className="font-mono text-xs">{account.currency}</Badge>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <span className="text-muted-foreground text-xs">{t("editAllocationsModal.available")}</span>
+                          <span className="text-muted-foreground text-xs text-right">{t("editAllocationsModal.unallocatedPercent")}</span>
+
+                          <span className="font-mono font-medium text-foreground">
+                            {formatAmount(available ?? 0, account.currency, true)}
+                          </span>
+                          <span className={cn(
+                            "font-mono font-medium text-right",
+                            unallocatedPercent < 10 ? "text-amber-500" : "text-green-600"
+                          )}>
+                            {unallocatedPercent.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <Separator orientation="vertical" className="hidden md:block h-auto bg-border/50" />
+                      <Separator orientation="horizontal" className="md:hidden bg-border/50" />
+
+                      {/* Right: Inputs */}
+                      <div className="flex-1 grid grid-cols-2 gap-4 items-start">
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                            {t("editAllocationsModal.amount")}
+                          </Label>
+                          <div className="relative">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                              {currencySymbol || "$"}
+                            </div>
+                            <Input
+                              type="number"
+                              value={alloc?.allocationAmount ?? ""}
+                              onChange={(e) =>
+                                handleAmountChange(account.id, Number(e.target.value))
+                              }
+                              placeholder="0.00"
+                              step="0.01"
+                              min="0"
+                              disabled={isLoading || isFetchingHistory}
+                              className={cn(
+                                "pl-7 font-mono",
+                                hasError && "border-destructive focus-visible:ring-destructive"
+                              )}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                            {t("editAllocationsModal.allocatedPercent")}
+                          </Label>
+                          <div className="relative">
+                            <Input
+                              type="number"
+                              value={alloc?.allocatedPercent ?? ""}
+                              onChange={(e) =>
+                                handlePercentageChange(account.id, Number(e.target.value))
+                              }
+                              placeholder="0"
+                              step="0.1"
+                              min="0"
+                              max="100"
+                              disabled={isLoading || isFetchingHistory}
+                              className={cn(
+                                "pr-8 font-mono",
+                                hasError && "border-destructive focus-visible:ring-destructive"
+                              )}
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                              <Percent className="h-3 w-3" />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {hasError && (
+                      <div className="mt-3 text-xs font-medium text-destructive bg-destructive/10 p-2 rounded flex items-center animate-in fade-in slide-in-from-top-1">
+                        ⚠️ {hasError}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0 mt-2">
           <Button variant="outline" onClick={() => handleOpenChange(false)} disabled={isLoading || isFetchingHistory}>
             {t("editAllocationsModal.cancel")}
           </Button>
-          <Button onClick={handleSubmit} disabled={isLoading || isFetchingHistory}>
+          <Button onClick={handleSubmit} disabled={isLoading || isFetchingHistory} className="bg-primary text-primary-foreground hover:bg-primary/90">
             {isLoading ? t("editAllocationsModal.updating") : isFetchingHistory ? t("editAllocationsModal.loadingData") : t("editAllocationsModal.updateAllocations")}
           </Button>
         </DialogFooter>
