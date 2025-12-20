@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkwealthvn_docs=self.webpackChunkwealthvn_docs||[]).push([[4860],{4860(e,s,c){c.d(s,{createInfoServices:()=>a.v});var a=c(2179);c(9932)}}]);
