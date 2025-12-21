@@ -29,7 +29,7 @@ module.exports = {
         docs: {
           sidebarPath: "./sidebars.js",
           editUrl: "https://github.com/chipheo00/vn-wealthfolio/tree/main/docs/",
-          routeBasePath: "/",
+          routeBasePath: "/docs",
         },
         blog: false,
         theme: {
@@ -48,9 +48,15 @@ module.exports = {
       },
       items: [
         {
+          to: "/",
+          label: "Trang Chủ",
+          position: "left",
+          activeBaseRegex: "^/$",
+        },
+        {
           type: "docSidebar",
           sidebarId: "tutorialSidebar",
-          label: "Documentation",
+          label: "Tài Liệu",
           position: "left",
         },
         {

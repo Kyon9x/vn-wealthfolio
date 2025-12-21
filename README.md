@@ -61,6 +61,15 @@ WealthVN giúp bạn theo dõi, quản lý và phát triển danh mục đầu t
 * Người có nhiều tài sản & mục tiêu tài chính dài hạn
 
 ---
+### Lưu ý khi cài đặt WealthVN
+
+  WealthVn hiện tại là open source app, với ngân sách hạn chế, nên khi bạn cài đặt, bạn sẽ thấy thông báo cảnh báo app chưa được đăng ký (Chưa có tiền đăng ký ).
+  - Trên Windows bạn có thể tắt thông báo này
+  - Trên MacOS bạn có thể tắt thông báo này trong cài đặt. Dùng lệnh sau:
+    ```
+      xattr -d com.apple.quarantine /Applications/Wealth\ VN.app
+    ```
+  - Trên Linux bạn có thể cài app một cách bình thường.
 
 ### 📈 WealthVN – Hiểu rõ tài sản, tự tin đầu tư
 
