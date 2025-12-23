@@ -127,7 +127,7 @@ export function EditSingleAllocationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] flex flex-col bg-background/95 backdrop-blur-xl">
+      <DialogContent className="sm:max-w-[800px] flex flex-col bg-background/95 backdrop-blur-xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {currentAllocation ? t("singleAllocationModal.editTitle") : t("singleAllocationModal.createTitle")}
@@ -188,12 +188,18 @@ export function EditSingleAllocationModal({
                  <Separator orientation="vertical" className="hidden md:block h-auto bg-border/50" />
                  <Separator orientation="horizontal" className="md:hidden bg-border/50" />
 
-                 {/* Right: Inputs */}
-                 <div className="flex-1 grid grid-cols-2 gap-4 items-start">
-                   <div className="space-y-2">
+                 {/* Right: Inputs - mirroring left section's 2-row layout */}
+                 <div className="flex-1 flex flex-col justify-end">
+                   <div className="grid grid-cols-2 gap-4 text-sm">
+                     {/* Labels row */}
                      <Label className="text-xs text-muted-foreground uppercase tracking-wider">
                        {t("singleAllocationModal.amount")}
                      </Label>
+                     <Label className="text-xs text-muted-foreground uppercase tracking-wider">
+                       {t("singleAllocationModal.allocationPercentage")}
+                     </Label>
+
+                     {/* Inputs row - aligned with values on left */}
                      <div className="relative">
                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
                          {(0).toLocaleString('en-US', { style: 'currency', currency: account.currency, minimumFractionDigits: 0 }).replace(/\d/g, '').trim() || "$"}
@@ -212,12 +218,6 @@ export function EditSingleAllocationModal({
                          )}
                        />
                      </div>
-                   </div>
-
-                   <div className="space-y-2">
-                     <Label className="text-xs text-muted-foreground uppercase tracking-wider">
-                       {t("singleAllocationModal.allocationPercentage")}
-                     </Label>
                      <div className="relative">
                        <Input
                          type="number"
