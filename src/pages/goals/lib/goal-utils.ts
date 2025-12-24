@@ -262,6 +262,48 @@ export function getGoalStatus(goal: Goal, isOnTrack: boolean) {
 }
 
 /**
+ * Check if two date ranges overlap
+ * Two ranges overlap if: rangeA.start < rangeB.end AND rangeA.end > rangeB.start
+ *
+ * @param startA - Start date of range A (ISO string or Date)
+ * @param endA - End date of range A (ISO string or Date)
+ * @param startB - Start date of range B (ISO string or Date)
+ * @param endB - End date of range B (ISO string or Date)
+ * @returns true if the ranges overlap, false otherwise
+ *
+ * @example
+ * // Goal 1: 2025-01-01 to 2030-12-31
+ * // Goal 2: 2031-01-01 to 2035-12-31
+ * doDateRangesOverlap('2025-01-01', '2030-12-31', '2031-01-01', '2035-12-31')
+ * // Returns: false (Goal 2 starts after Goal 1 ends)
+ *
+ * // Goal 1: 2025-01-01 to 2030-12-31
+ * // Goal 2: 2028-01-01 to 2032-12-31
+ * doDateRangesOverlap('2025-01-01', '2030-12-31', '2028-01-01', '2032-12-31')
+ * // Returns: true (they overlap from 2028 to 2030)
+ */
+export function doDateRangesOverlap(
+  startA: string | Date | undefined,
+  endA: string | Date | undefined,
+  startB: string | Date | undefined,
+  endB: string | Date | undefined,
+): boolean {
+  // If any date is missing, we can't determine overlap - assume they DON'T overlap
+  // This is conservative: if we don't know, don't count it
+  if (!startA || !endA || !startB || !endB) {
+    return false;
+  }
+
+  const dateStartA = typeof startA === 'string' ? new Date(startA) : startA;
+  const dateEndA = typeof endA === 'string' ? new Date(endA) : endA;
+  const dateStartB = typeof startB === 'string' ? new Date(startB) : startB;
+  const dateEndB = typeof endB === 'string' ? new Date(endB) : endB;
+
+  // Two ranges overlap if: A starts before B ends AND A ends after B starts
+  return dateStartA < dateEndB && dateEndA > dateStartB;
+}
+
+/**
  * Calculate the contributed value of an allocation at a specific query date
  *
  * Formula: ContributedValue = InitialContribution + (AccountGrowth × AllocationPercent)

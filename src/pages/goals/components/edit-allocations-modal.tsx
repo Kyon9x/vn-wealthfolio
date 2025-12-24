@@ -21,7 +21,7 @@ import { Percent } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { calculateAllocationContributedValue, calculateUnallocatedBalance } from "../lib/goal-utils";
+import { calculateAllocationContributedValue, calculateUnallocatedBalance, doDateRangesOverlap } from "../lib/goal-utils";
 
 interface EditAllocationsModalProps {
   open: boolean;
@@ -431,9 +431,21 @@ export function EditAllocationsModal({
               const hasError = errors[account.id];
 
               // Calculate what's already allocated to other goals (percentage)
+              // Only count allocations from goals that OVERLAP with current goal's time period
               const otherGoalsPercent = allAllocations.reduce((sum, existingAlloc) => {
                 if (existingAlloc.accountId === account.id && existingAlloc.goalId !== goal.id) {
-                  return sum + (existingAlloc.allocatedPercent || 0);
+                  // Check if the other allocation's time period overlaps with current goal
+                  // Use startDate/endDate from the allocation (backfilled from goal dates)
+                  const overlaps = doDateRangesOverlap(
+                    goal.startDate,      // Current goal start
+                    goal.dueDate,        // Current goal end
+                    existingAlloc.startDate,  // Other allocation start
+                    existingAlloc.endDate     // Other allocation end
+                  );
+
+                  if (overlaps) {
+                    return sum + (existingAlloc.allocatedPercent || 0);
+                  }
                 }
                 return sum;
               }, 0);

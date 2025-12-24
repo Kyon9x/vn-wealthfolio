@@ -25,6 +25,7 @@ import { EditSingleAllocationModal } from "./edit-single-allocation-modal";
 interface AllocationHistoryTableProps {
   goalId: string;
   goalStartDate?: string;
+  goalDueDate?: string;
   allocations: GoalAllocation[];
   allAllocations?: GoalAllocation[]; // All allocations across all goals for time-aware calculation
   accounts: Map<string, Account>;
@@ -38,6 +39,7 @@ interface AllocationHistoryTableProps {
 export function AllocationHistoryTable({
   goalId,
   goalStartDate,
+  goalDueDate,
   allocations,
   allAllocations = [],
   accounts,
@@ -178,7 +180,7 @@ export function AllocationHistoryTable({
         <EditSingleAllocationModal
           open={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
-          goal={{ id: goalId, title: "", startDate: goalStartDate }}
+          goal={{ id: goalId, title: "", startDate: goalStartDate, dueDate: goalDueDate }}
           account={accounts.get(currentAllocation.accountId) || { id: "", name: "" } as Account}
           currentAllocation={currentAllocation}
           currentAccountValue={currentAccountValues.get(currentAllocation.accountId) || 0}

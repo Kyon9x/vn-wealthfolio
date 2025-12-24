@@ -12,14 +12,14 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    Legend,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 import { AllocationHistoryTable } from "./components/allocation-history-table";
 import { EditAllocationsModal } from "./components/edit-allocations-modal";
@@ -29,9 +29,9 @@ import { useGoalMutations } from "./hooks/use-goal-mutations";
 import { useGoalProgress } from "./hooks/use-goal-progress";
 import { TimePeriodOption, useGoalValuationHistory } from "./hooks/use-goal-valuation-history";
 import {
-    calculateDailyInvestment,
-    calculateProjectedValueByDate,
-    isGoalOnTrackByDate,
+  calculateDailyInvestment,
+  calculateProjectedValueByDate,
+  isGoalOnTrackByDate,
 } from "./lib/goal-utils";
 
 export default function GoalDetailsPage() {
@@ -510,6 +510,7 @@ export default function GoalDetailsPage() {
           <AllocationHistoryTable
             goalId={id || ""}
             goalStartDate={goal.startDate}
+            goalDueDate={goal.dueDate}
             allocations={allocations?.filter((a) => a.goalId === id) || []}
             allAllocations={allocations || []}
             accounts={

@@ -19,12 +19,12 @@ import { Percent } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { calculateAllocationContributedValue, calculateUnallocatedBalance } from "../lib/goal-utils";
+import { calculateAllocationContributedValue, calculateUnallocatedBalance, doDateRangesOverlap } from "../lib/goal-utils";
 
 interface EditSingleAllocationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  goal: { id: string; title: string; startDate?: string };
+  goal: { id: string; title: string; startDate?: string; dueDate?: string };
   account: Account;
   currentAllocation?: GoalAllocation;
   currentAccountValue: number;
@@ -213,9 +213,21 @@ export function EditSingleAllocationModal({
   const remainingUnallocatedBalance = Math.max(0, baseUnallocatedBalance - amount);
 
   // Calculate unallocated percentage
+  // Only count allocations from goals that OVERLAP with current goal's time period
   const otherGoalsPercent = allAllocations.reduce((sum, alloc) => {
     if (alloc.goalId === goal.id) return sum;
     if (alloc.accountId !== account.id) return sum;
+
+    // Check if the other allocation's time period overlaps with current goal
+    const overlaps = doDateRangesOverlap(
+      goal.startDate,      // Current goal start
+      goal.dueDate,        // Current goal end
+      alloc.startDate,     // Other allocation start
+      alloc.endDate        // Other allocation end
+    );
+
+    if (!overlaps) return sum;
+
     return sum + (alloc.allocatedPercent || 0);
   }, 0);
   const remainingUnallocatedPercent = Math.max(0, 100 - otherGoalsPercent - percentage);
@@ -268,6 +280,9 @@ export function EditSingleAllocationModal({
         allocationDate: currentAllocation?.allocationDate,
         startDate: currentAllocation?.startDate,
         endDate: currentAllocation?.endDate,
+        // Required deprecated fields for backend compatibility
+        percentAllocation: percentage,
+        allocationAmount: amount,
       } as GoalAllocation;
 
       await onSubmit(allocation);
