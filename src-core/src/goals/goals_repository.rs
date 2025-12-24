@@ -238,4 +238,33 @@ impl GoalRepositoryTrait for GoalRepository {
             })
             .await
     }
+
+    async fn reset_allocations_for_goal(&self, goal_id_to_reset: String) -> Result<usize> {
+        self.writer
+            .exec(move |conn: &mut SqliteConnection| -> Result<usize> {
+                Ok(diesel::update(
+                    goals_allocation::table.filter(goals_allocation::goal_id.eq(goal_id_to_reset))
+                )
+                .set((
+                    goals_allocation::init_amount.eq(0.0),
+                    goals_allocation::allocation_percentage.eq(0.0),
+                    goals_allocation::allocation_amount.eq(0.0),
+                    goals_allocation::percent_allocation.eq(0),
+                ))
+                .execute(conn)?)
+            })
+            .await
+    }
+
+    async fn update_allocations_end_date_for_goal(&self, goal_id_to_update: String, new_end_date: String) -> Result<usize> {
+        self.writer
+            .exec(move |conn: &mut SqliteConnection| -> Result<usize> {
+                Ok(diesel::update(
+                    goals_allocation::table.filter(goals_allocation::goal_id.eq(goal_id_to_update))
+                )
+                .set(goals_allocation::end_date.eq(Some(new_end_date)))
+                .execute(conn)?)
+            })
+            .await
+    }
 }

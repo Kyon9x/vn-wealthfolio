@@ -24,6 +24,10 @@ pub trait GoalRepositoryTrait: Send + Sync {
     async fn insert_allocation_version(&self, version: AllocationVersion) -> Result<AllocationVersion>;
     async fn update_allocation(&self, allocation: GoalsAllocation) -> Result<GoalsAllocation>;
     async fn delete_allocation(&self, allocation_id: String) -> Result<usize>;
+    /// Reset all allocations for a specific goal to 0 (used when goal start_date changes)
+    async fn reset_allocations_for_goal(&self, goal_id: String) -> Result<usize>;
+    /// Update end_date for all allocations of a goal (used when goal due_date changes)
+    async fn update_allocations_end_date_for_goal(&self, goal_id: String, new_end_date: String) -> Result<usize>;
 }
 
 /// Trait for goal service operations

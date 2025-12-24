@@ -66,6 +66,11 @@
       "success": "Tạo mục tiêu thành công!",
       "description": "Bạn có muốn phân bổ tài khoản để tài trợ cho mục tiêu này không?",
       "addAllocations": "Thêm phân bổ"
+    },
+    "startDateChanged": {
+      "confirmTitle": "Đặt lại phân bổ?",
+      "confirmDescription": "Thay đổi ngày bắt đầu sẽ đặt lại tất cả các phân bổ hiện có cho mục tiêu này. Bạn sẽ cần cấu hình lại phân bổ sau thay đổi này. Bạn có chắc chắn muốn tiếp tục không?",
+      "confirmButton": "Có, Đặt lại phân bổ"
     }
   },
   "progress": {

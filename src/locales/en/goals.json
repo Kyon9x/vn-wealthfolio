@@ -66,6 +66,11 @@
       "success": "Goal created successfully!",
       "description": "Would you like to allocate accounts to fund this goal?",
       "addAllocations": "Add Allocations"
+    },
+    "startDateChanged": {
+      "confirmTitle": "Reset Allocations?",
+      "confirmDescription": "Changing the start date will reset all existing allocations for this goal. You will need to re-configure your allocations after this change. Are you sure you want to continue?",
+      "confirmButton": "Yes, Reset Allocations"
     }
   },
   "progress": {
