@@ -34,7 +34,7 @@ impl<T: GoalRepositoryTrait> GoalService<T> {
     ) -> Result<()> {
         // DEPRECATED: This method uses old percent_allocation field
         // Use validate_allocation_percentages() instead for new hybrid system
-        
+
         // Get allocations that overlap with the new allocation's date range
         let allocations = self.goal_repo.load_allocations_for_non_achieved_goals()?;
 
@@ -181,7 +181,7 @@ impl<T: GoalRepositoryTrait> GoalService<T> {
         current_account_value: f64,
     ) -> Result<f64> {
         let allocations = self.goal_repo.get_allocations_for_account(account_id)?;
-        
+
         let total_allocated: f64 = allocations
             .iter()
             .map(|a| a.allocation_amount)
@@ -198,7 +198,7 @@ impl<T: GoalRepositoryTrait> GoalService<T> {
         current_account_value: f64,
     ) -> Result<()> {
         let unallocated = self.get_unallocated_balance(account_id, current_account_value)?;
-        
+
         if allocation_amount > unallocated {
             return Err(crate::errors::Error::Validation(
                 crate::errors::ValidationError::InvalidInput(
@@ -221,9 +221,9 @@ impl<T: GoalRepositoryTrait> GoalService<T> {
         exclude_allocation_id: Option<&str>,
     ) -> Result<()> {
         let allocations = self.goal_repo.get_allocations_for_account(account_id)?;
-        
+
         let mut total_percent = new_percentage;
-        
+
         for allocation in allocations {
             // Skip the allocation being updated
             if let Some(exclude_id) = exclude_allocation_id {
@@ -294,10 +294,10 @@ impl<T: GoalRepositoryTrait> GoalService<T> {
     ) -> Result<()> {
         // Get all allocations for this account
         let allocations = self.goal_repo.get_allocations_for_account(account_id)?;
-        
+
         // Sum up allocations that were active on the allocation_date
         let mut total_allocated_at_date = 0.0;
-        
+
         for alloc in &allocations {
             // Check if this allocation was active on allocation_date
             if let Some(alloc_date) = &alloc.allocation_date {
@@ -339,6 +339,51 @@ impl<T: GoalRepositoryTrait + Send + Sync> GoalServiceTrait for GoalService<T> {
     }
 
     async fn update_goal(&self, updated_goal_data: Goal) -> Result<Goal> {
+        // Get the existing goal to compare dates
+        let existing_goals = self.goal_repo.load_goals()?;
+        let existing_goal = existing_goals.iter().find(|g| g.id == updated_goal_data.id);
+
+        if let Some(existing) = existing_goal {
+            let start_date_changed = existing.start_date != updated_goal_data.start_date;
+            let due_date_changed = existing.due_date != updated_goal_data.due_date;
+
+            // If start_date changed, reset all allocations for this goal to 0 and update dates
+            // This is because allocations are tied to historical values at the start date
+            if start_date_changed {
+                log::info!(
+                    "Goal {} start_date changed from {:?} to {:?}. Resetting all allocations to 0 and updating dates.",
+                    updated_goal_data.id,
+                    existing.start_date,
+                    updated_goal_data.start_date
+                );
+                self.goal_repo
+                    .reset_allocations_for_goal(
+                        updated_goal_data.id.clone(),
+                        updated_goal_data.start_date.clone(),
+                        updated_goal_data.due_date.clone(),
+                    )
+                    .await?;
+            }
+            // If only due_date changed (not start_date), extend allocations' end_date
+            // This preserves existing allocations while adjusting the timeline
+            else if due_date_changed {
+                if let Some(ref new_end_date) = updated_goal_data.due_date {
+                    log::info!(
+                        "Goal {} due_date changed from {:?} to {:?}. Updating allocations' end_date.",
+                        updated_goal_data.id,
+                        existing.due_date,
+                        updated_goal_data.due_date
+                    );
+                    self.goal_repo
+                        .update_allocations_end_date_for_goal(
+                            updated_goal_data.id.clone(),
+                            new_end_date.clone(),
+                        )
+                        .await?;
+                }
+            }
+        }
+
         self.goal_repo.update_goal(updated_goal_data).await
     }
 
@@ -371,7 +416,8 @@ impl<T: GoalRepositoryTrait + Send + Sync> GoalServiceTrait for GoalService<T> {
     }
 
     fn load_goals_allocations(&self) -> Result<Vec<GoalsAllocation>> {
-        self.goal_repo.load_allocations_for_non_achieved_goals()
+        // Use load_all_allocations to include completed goals' allocations (for display/chart)
+        self.goal_repo.load_all_allocations()
     }
 
     fn validate_allocation_conflicts(

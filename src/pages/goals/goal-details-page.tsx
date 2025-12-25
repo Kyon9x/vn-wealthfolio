@@ -219,11 +219,22 @@ export default function GoalDetailsPage() {
       {/* Header */}
       <div className="flex items-start justify-between border-b pb-6">
         <div>
-          <h1 className="text-foreground text-2xl font-bold">
-            {t("details.title", { title: goal.title })}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-foreground text-2xl font-bold">
+              {t("details.title", { title: goal.title })}
+            </h1>
+            {goal.isAchieved && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                <Icons.Check className="h-4 w-4" />
+                {t("completedGoal.badge")}
+              </span>
+            )}
+          </div>
           <p className="text-muted-foreground mt-1">
-            {t("details.description", { title: goal.title })}
+            {goal.isAchieved
+              ? t("completedGoal.description")
+              : t("details.description", { title: goal.title })
+            }
           </p>
         </div>
         <div className="flex gap-3">
@@ -477,18 +488,25 @@ export default function GoalDetailsPage() {
 
       {/* Allocations Section */}
       <div className="mb-8 space-y-8">
-        {/* Allocation Settings - Read Only */}
+        {/* Allocation Settings - Hidden for completed goals */}
+        {!goal.isAchieved && (
         <div>
           <div className="mb-4 flex items-start justify-between">
             <div>
-              <h3 className="text-foreground mb-2 text-xl font-bold">{t("details.allocationSettings.title")}</h3>
-              <p className="text-muted-foreground text-sm">{t("details.allocationSettings.description")}</p>
+              <h3 className="text-foreground mb-2 text-xl font-bold">
+                {t("details.allocationSettings.title")}
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                {t("details.allocationSettings.description")}
+              </p>
             </div>
             <Button onClick={() => setIsCreatingAllocation(true)} variant="default">
               <Icons.Pencil className="mr-2 h-4 w-4" />
               {t("details.allocationSettings.editButton")}
             </Button>
           </div>
+
+          {/* Allocation overview table */}
           {goal && accounts && (
             <GoalsAllocations
               goals={[goal]}
@@ -502,14 +520,34 @@ export default function GoalDetailsPage() {
             />
           )}
         </div>
+        )}
 
-        {/* Current Allocations - With Actions */}
+        {/* Current Allocations / Allocation History */}
         <div>
-          <h3 className="text-foreground mb-2 text-xl font-bold">{t("details.allocations.title")}</h3>
-          <p className="text-muted-foreground mb-4 text-sm">{t("details.allocations.description")}</p>
+          <h3 className="text-foreground mb-2 text-xl font-bold">
+            {goal.isAchieved ? t("completedGoal.allocationHistory") : t("details.allocations.title")}
+          </h3>
+          <p className="text-muted-foreground mb-4 text-sm">
+            {goal.isAchieved
+              ? t("completedGoal.historyDescription")
+              : t("details.allocations.description")
+            }
+          </p>
+
+          {/* Info message for completed goals */}
+          {goal.isAchieved && (
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400">
+              <Icons.InfoCircle className="h-4 w-4 shrink-0" />
+              <span>{t("completedGoal.allocationsReleased")}</span>
+            </div>
+          )}
           <AllocationHistoryTable
             goalId={id || ""}
+            goalStartDate={goal.startDate}
+            goalDueDate={goal.dueDate}
             allocations={allocations?.filter((a) => a.goalId === id) || []}
+            allAllocations={allocations || []}
+            allGoals={goals || []}
             accounts={
               new Map(
                 accounts?.map((acc) => [
@@ -540,7 +578,7 @@ export default function GoalDetailsPage() {
             onAllocationDeleted={async (allocationId) => {
               await deleteAllocationMutation.mutateAsync(allocationId);
             }}
-            readOnly={false}
+            readOnly={goal.isAchieved}
           />
         </div>
       </div>
@@ -557,6 +595,7 @@ export default function GoalDetailsPage() {
           currentAccountValues={currentAccountValuesFromValuations}
           existingAllocations={allocations?.filter((a) => a.goalId === id) || []}
           allAllocations={allocations || []}
+          allGoals={goals || []}
           onSubmit={async (newAllocations) => {
             // Save all allocations at once with a single success toast
             await saveAllocationsMutation.mutateAsync(newAllocations);

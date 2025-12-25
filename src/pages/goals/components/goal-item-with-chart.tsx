@@ -9,6 +9,7 @@ interface GoalItemWithChartProps {
   totalAccountCount: number;
   onEdit: (goal: Goal) => void;
   onDelete: (goal: Goal) => void;
+  onComplete?: (goal: Goal) => void;
   goals: Goal[] | undefined; // Needed for useGoalProgress
 }
 
@@ -22,6 +23,7 @@ export function GoalItemWithChart({
   totalAccountCount,
   onEdit,
   onDelete,
+  onComplete,
   goals,
 }: GoalItemWithChartProps) {
   const { getGoalProgress } = useGoalProgress(goals);
@@ -58,6 +60,7 @@ export function GoalItemWithChart({
       totalAccountCount={totalAccountCount}
       onEdit={onEdit}
       onDelete={onDelete}
+      onComplete={onComplete}
     />
   );
 }

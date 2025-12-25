@@ -66,6 +66,11 @@
       "success": "Goal created successfully!",
       "description": "Would you like to allocate accounts to fund this goal?",
       "addAllocations": "Add Allocations"
+    },
+    "startDateChanged": {
+      "confirmTitle": "Reset Allocations?",
+      "confirmDescription": "Changing the start date will reset all existing allocations for this goal. You will need to re-configure your allocations after this change. Are you sure you want to continue?",
+      "confirmButton": "Yes, Reset Allocations"
     }
   },
   "progress": {
@@ -254,18 +259,20 @@
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving...",
+    "loading": "Loading...",
     "errors": {
       "amountNegative": "Amount cannot be negative",
       "percentageRange": "Percentage must be between 0 and 100",
       "percentageExceeds": "Percentage cannot exceed 100%",
-      "allocationRequired": "Allocation must be greater than 0"
+      "allocationRequired": "Allocation must be greater than 0",
+      "amountExceedsUnallocated": "Amount exceeds unallocated balance",
+      "percentageExceedsTotal": "Total percentage exceeds 100%"
     },
     "saveFailed": "Failed to save allocation",
     "unknownError": "Unknown error",
     "summary": "Allocation Summary",
     "reviewAllocation": "Adjust allocation for this specific account",
     "currentBalance": "Current Balance",
-    "unallocatedGrowth": "Unallocated Growth",
     "amount": "Allocation Amount"
   },
   "editAllocationsModal": {
@@ -282,12 +289,25 @@
     "allocatedPercent": "Allocated Percent",
     "summary": "Summary",
     "amount": "Allocation Amount",
-    "available": "Available Balance",
     "reviewAllocations": "Review and adjust your portfolio allocations",
     "totalAllocated": "Total Allocated",
     "accounts": "Accounts",
     "errors": {
       "amountNegative": "Amount cannot be negative"
     }
+  },
+  "completedGoal": {
+    "badge": "Completed",
+    "description": "This goal has been achieved. All allocations have been released and are now available for other goals.",
+    "allocationHistory": "Allocation History",
+    "historyDescription": "Historical record of allocations for this completed goal",
+    "allocationsReleased": "Allocations have been released and are now available for other goals.",
+    "initialContribution": "Initial",
+    "finalValue": "Final Value",
+    "growthPercent": "Growth (%)",
+    "period": "Period",
+    "reactivate": "Reactivate Goal",
+    "markComplete": "Mark as Completed",
+    "complete": "Complete"
   }
 }

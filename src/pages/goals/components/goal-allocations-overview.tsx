@@ -151,9 +151,11 @@ export function GoalAllocationsOverview({
         <AllocationModal
           open={isModalOpen}
           onOpenChange={setIsModalOpen}
-          goal={selectedAllocation.goal}
+          goal={{ id: selectedAllocation.goal.id, title: selectedAllocation.goal.title, startDate: selectedAllocation.goal.startDate, dueDate: selectedAllocation.goal.dueDate }}
           account={selectedAllocation.account}
           currentAccountValue={currentAccountValues.get(selectedAllocation.account.id) || 0}
+          allAllocations={allocations}
+          allGoals={goals}
           onSubmit={onAllocationCreated}
         />
       )}

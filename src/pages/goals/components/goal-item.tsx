@@ -22,6 +22,7 @@ export interface GoalItemProps {
   totalAccountCount?: number;
   onEdit: (goal: Goal) => void;
   onDelete: (goal: Goal) => void;
+  onComplete?: (goal: Goal) => void;
 }
 
 export function GoalItem({
@@ -33,6 +34,7 @@ export function GoalItem({
   totalAccountCount = 0,
   onEdit,
   onDelete,
+  onComplete,
 }: GoalItemProps) {
   const navigate = useNavigate();
   const { t } = useTranslation("goals");
@@ -151,7 +153,7 @@ export function GoalItem({
           </div>
         </div>
         <div onClick={(e) => e.stopPropagation()}>
-          <GoalOperations goal={goal} onEdit={onEdit} onDelete={onDelete} />
+          <GoalOperations goal={goal} onEdit={onEdit} onDelete={onDelete} onComplete={onComplete} />
         </div>
       </div>
 

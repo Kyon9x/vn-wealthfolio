@@ -1,32 +1,43 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import * as z from "zod";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DatePickerInput, Icons, MoneyInput } from "@wealthvn/ui";
 
 import {
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+
 
 import { newGoalSchema } from "@/lib/schemas";
 import { useGoalMutations } from "@/pages/goals/hooks/use-goal-mutations";
@@ -100,6 +111,39 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
     return () => subscription.unsubscribe();
   }, [form]);
 
+  // State for start date change confirmation dialog
+  const [showStartDateConfirm, setShowStartDateConfirm] = useState(false);
+  const [pendingPayload, setPendingPayload] = useState<any>(null);
+
+  // Helper to check if start date has changed
+  const hasStartDateChanged = (newStartDate: Date | string | undefined): boolean => {
+    const originalStartDate = defaultValues?.startDate;
+    if (!originalStartDate || !newStartDate) return false;
+
+    const originalDate = originalStartDate instanceof Date ? originalStartDate : new Date(originalStartDate);
+    const newDate = newStartDate instanceof Date ? newStartDate : new Date(newStartDate);
+
+    return originalDate.toDateString() !== newDate.toDateString();
+  };
+
+  // Execute the actual update mutation
+  const executeUpdate = (payload: any) => {
+    updateGoalMutation.mutate(payload, {
+      onSuccess: () => {
+        onSuccess();
+      }
+    });
+  };
+
+  // Handle confirmed start date change
+  const handleConfirmStartDateChange = () => {
+    setShowStartDateConfirm(false);
+    if (pendingPayload) {
+      executeUpdate(pendingPayload);
+      setPendingPayload(null);
+    }
+  };
+
   function onSubmit(data: NewGoal) {
     const { startDate, dueDate, ...rest } = data;
     // Convert dates to ISO strings for the backend
@@ -108,9 +152,20 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
       startDate: startDate instanceof Date ? startDate.toISOString() : startDate,
       dueDate: dueDate instanceof Date ? dueDate.toISOString() : dueDate,
     };
+
     if (rest.id) {
-      return updateGoalMutation.mutate(payload as any, { onSuccess });
+      // Check if start date is changing for an existing goal
+      if (hasStartDateChanged(startDate)) {
+        // Show confirmation dialog before proceeding
+        setPendingPayload(payload);
+        setShowStartDateConfirm(true);
+        return;
+      }
+
+      // No start date change, proceed normally
+      return executeUpdate(payload);
     }
+
     return addGoalMutation.mutate(payload, {
       onSuccess: (createdGoal) => {
         onSuccess();
@@ -129,9 +184,30 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <DialogHeader>
+    <>
+      {/* Confirmation dialog for start date change */}
+      <AlertDialog open={showStartDateConfirm} onOpenChange={setShowStartDateConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("form.startDateChanged.confirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("form.startDateChanged.confirmDescription")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingPayload(null)}>
+              {t("form.buttons.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmStartDateChange}>
+              {t("form.startDateChanged.confirmButton")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <DialogHeader>
           <DialogTitle>
             {defaultValues?.id ? t("form.updateTitle") : t("form.addTitle")}
           </DialogTitle>
@@ -370,7 +446,8 @@ export function GoalForm({ defaultValues, onSuccess = () => undefined }: GoalFor
             <span>{defaultValues?.id ? t("form.buttons.update") : t("form.buttons.add")}</span>
           </Button>
         </DialogFooter>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </>
   );
 }

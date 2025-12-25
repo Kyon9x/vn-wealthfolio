@@ -1,8 +1,19 @@
+---
+id: allocation-setting-plan
+title: Goal Allocation Setting Plan
+sidebar_label: Allocation Setting Plan
+---
+
 # Goal Allocation Setting Plan
 
 ## Overview
 
 Hybrid approach: both **value-based** and **percentage-based** allocation to prevent double-counting while properly attributing growth across multiple goals.
+
+**Key Features:**
+- Time-aware unallocated balance calculation
+- Date range overlap detection for percentage calculations
+- Historical value tracking for accurate attribution
 
 ## Allocation Approach
 
@@ -186,3 +197,411 @@ Before allocation:
 - **Multiple allocations same account**: Each goal gets proportional share of growth
 - **Account value < sum of allocations**: Should be prevented by validation
 - **Reallocating between goals**: Only from unallocated pool, not between active goals
+- **Sequential goals (no overlap)**: Goals that don't overlap in time don't affect each other's percentage availability
+- **Goal start date change**: Resets all allocations for that goal (requires user confirmation)
+- **Goal end date change**: Updates all allocations' end dates to maintain overlap logic
+
+---
+
+## Time-Aware Allocation Logic
+
+When managing multiple financial goals that share the same investment accounts, the system needs to accurately track:
+1. **Unallocated Balance**: How much of an account's value is available for a new goal
+2. **Unallocated Percentage**: What percentage of future growth is available for allocation
+
+The challenge arises when goals have **different start dates and end dates**. A simple sum of allocated percentages doesn't account for:
+- Goals that have already ended before the new goal starts
+- Goals that haven't started yet when calculating available balance
+- The actual "contributed value" of each allocation at different points in time
+
+### Core Concepts
+
+#### Contributed Value
+
+The **Contributed Value** of an allocation at any point in time is:
+
+```
+ContributedValue = InitialContribution + (AccountGrowth × AllocationPercent)
+```
+
+Where:
+- `InitialContribution` = The fixed dollar amount allocated when the goal started
+- `AccountGrowth` = `AccountValue(QueryDate) - AccountValue(AllocationStartDate)`
+- `AllocationPercent` = The percentage of growth this goal is entitled to (0-100%)
+
+#### Time-Aware Unallocated Balance
+
+The **Unallocated Balance** for a goal at its start date is:
+
+```
+UnallocatedBalance = AccountValueAtGoalStart - Σ(OtherAllocations' ContributedValues)
+```
+
+This is calculated by:
+1. Getting the account value at the **current goal's start date**
+2. For each **other goal's allocation** on this account:
+   - Calculate its contributed value UP TO the current goal's start date
+3. Subtract the sum of contributed values from the account value
+
+#### Date Range Overlap
+
+For **percentage calculations**, allocations are only counted if their time periods **overlap** with the current goal. Two date ranges overlap if:
+
+```
+A.startDate < B.endDate AND A.endDate > B.startDate
+```
+
+This means:
+- Goals that end before the current goal starts → **Not counted**
+- Goals that start after the current goal ends → **Not counted**
+- Goals that partially or fully overlap → **Counted**
+
+### Utility Functions
+
+Located in `src/pages/goals/lib/goal-utils.ts`:
+
+#### `doDateRangesOverlap()`
+
+Checks if two date ranges overlap.
+
+```typescript
+export function doDateRangesOverlap(
+  startA: string | Date | undefined,
+  endA: string | Date | undefined,
+  startB: string | Date | undefined,
+  endB: string | Date | undefined,
+): boolean {
+  if (!startA || !endA || !startB || !endB) {
+    return false; // Conservative: if dates missing, assume no overlap
+  }
+
+  const dateStartA = new Date(startA);
+  const dateEndA = new Date(endA);
+  const dateStartB = new Date(startB);
+  const dateEndB = new Date(endB);
+
+  return dateStartA < dateEndB && dateEndA > dateStartB;
+}
+```
+
+#### `calculateAllocationContributedValue()`
+
+Calculates the contributed value of an allocation at a specific date.
+
+```typescript
+export function calculateAllocationContributedValue(
+  initialContribution: number,
+  allocationPercentage: number,
+  accountValueAtAllocationStart: number,
+  accountValueAtQueryDate: number,
+  allocationStartDate: Date,
+  queryDate: Date
+): number {
+  // If query date is before allocation started, no contribution yet
+  if (queryDate < allocationStartDate) {
+    return 0;
+  }
+
+  // Calculate account growth since allocation start
+  const accountGrowth = Math.max(0, accountValueAtQueryDate - accountValueAtAllocationStart);
+
+  // Allocated portion of growth
+  const allocatedGrowth = accountGrowth * (allocationPercentage / 100);
+
+  // Total contributed value = initial + growth
+  return initialContribution + allocatedGrowth;
+}
+```
+
+#### `calculateUnallocatedBalance()`
+
+Calculates the remaining unallocated balance.
+
+```typescript
+export function calculateUnallocatedBalance(
+  accountValueAtQueryDate: number,
+  otherAllocationsContributedValues: number[]
+): number {
+  const totalContributed = otherAllocationsContributedValues.reduce((sum, v) => sum + v, 0);
+  return Math.max(0, accountValueAtQueryDate - totalContributed);
+}
+```
+
+### Component Implementation
+
+#### Edit Allocations Modal
+
+Located in `src/pages/goals/components/edit-allocations-modal.tsx`:
+
+**Historical Values Fetching:**
+
+The modal fetches account valuations at multiple dates:
+1. **Current goal's start date** - For calculating the base value
+2. **Each other allocation's start date** - For calculating their contributed values
+
+```typescript
+// Fetch requests for historical values
+const fetchRequests: { accountId: string; date: string }[] = [];
+
+// 1. Current goal's start date (for all accounts)
+for (const account of accounts) {
+  fetchRequests.push({ accountId: account.id, date: currentGoalStartDate });
+}
+
+// 2. Other allocations' start dates
+for (const alloc of allAllocations) {
+  if (alloc.goalId === goal.id) continue; // Skip current goal
+  const allocStartDate = alloc.allocationDate || alloc.startDate;
+  fetchRequests.push({ accountId: alloc.accountId, date: allocStartDate });
+}
+```
+
+**Unallocated Balance Calculation:**
+
+```typescript
+const calculateAvailableBalances = () => {
+  for (const account of accounts) {
+    // Get account value at current goal's start date
+    let accountValueAtGoalStart: number;
+    if (isPastGoal) {
+      accountValueAtGoalStart = historicalValuesCache[getCacheKey(account.id, currentGoalStartDate)] ?? 0;
+    } else {
+      accountValueAtGoalStart = currentAccountValues.get(account.id) || 0;
+    }
+
+    // Calculate contributed values from OTHER goals' allocations
+    const contributedValues: number[] = [];
+    for (const alloc of allAllocations) {
+      if (alloc.goalId === goal.id) continue;
+      if (alloc.accountId !== account.id) continue;
+
+      const contributedValue = calculateAllocationContributedValue(
+        alloc.initialContribution || 0,
+        alloc.allocatedPercent || 0,
+        accountValueAtAllocStart,
+        accountValueAtGoalStart,
+        allocStartDateObj,
+        goalStartDateObj
+      );
+      contributedValues.push(contributedValue);
+    }
+
+    // Unallocated balance = Account value - Sum of contributed values
+    balances[account.id] = calculateUnallocatedBalance(accountValueAtGoalStart, contributedValues);
+  }
+};
+```
+
+**Time-Aware Percentage Calculation:**
+
+```typescript
+const otherGoalsPercent = allAllocations.reduce((sum, existingAlloc) => {
+  if (existingAlloc.accountId !== account.id) return sum;
+  if (existingAlloc.goalId === goal.id) return sum;
+
+  // Only count allocations that OVERLAP with current goal's time period
+  const overlaps = doDateRangesOverlap(
+    goal.startDate,           // Current goal start
+    goal.dueDate,             // Current goal end
+    existingAlloc.startDate,  // Other allocation start
+    existingAlloc.endDate     // Other allocation end
+  );
+
+  if (!overlaps) return sum;
+
+  return sum + (existingAlloc.allocatedPercent || 0);
+}, 0);
+
+const remainingUnallocatedPercent = Math.max(0, 100 - otherGoalsPercent - currentInputPercent);
+```
+
+### Examples
+
+#### Example 1: Sequential Goals (No Overlap)
+
+| Goal | Start Date | End Date | Account A | Initial | Alloc % |
+|------|------------|----------|-----------|---------|---------|
+| Goal 1 | 2025-01-01 | 2030-12-31 | $100,000 | $50,000 | 100% |
+| Goal 2 | 2031-01-01 | 2035-12-31 | ? | ? | ? |
+
+**Account A value at 2031-01-01**: $200,000 (grew from $100,000)
+
+**Calculating Goal 2's unallocated balance:**
+
+1. Goal 1's contributed value at 2031-01-01:
+   - Initial: $50,000
+   - Growth: ($200,000 - $100,000) × 100% = $100,000
+   - **Contributed: $150,000**
+
+2. Unallocated Balance: $200,000 - $150,000 = **$50,000**
+
+3. Unallocated Percentage:
+   - Goal 1 period (2025-2030) does NOT overlap with Goal 2 (2031-2035)
+   - Goal 1's 100% is **not counted**
+   - **Unallocated: 100%**
+
+#### Example 2: Overlapping Goals
+
+| Goal | Start Date | End Date | Account A | Initial | Alloc % |
+|------|------------|----------|-----------|---------|---------|
+| Goal 1 | 2025-01-01 | 2030-12-31 | $100,000 | $50,000 | 50% |
+| Goal 2 | 2028-01-01 | 2032-12-31 | ? | ? | ? |
+
+**Account A value at 2028-01-01**: $150,000
+
+**Calculating Goal 2's unallocated balance:**
+
+1. Goal 1's contributed value at 2028-01-01:
+   - Initial: $50,000
+   - Growth: ($150,000 - $100,000) × 50% = $25,000
+   - **Contributed: $75,000**
+
+2. Unallocated Balance: $150,000 - $75,000 = **$75,000**
+
+3. Unallocated Percentage:
+   - Goal 1 (2025-2030) OVERLAPS with Goal 2 (2028-2032)
+   - Goal 1's 50% IS counted
+   - **Unallocated: 50%**
+
+#### Example 3: Future Goal
+
+| Goal | Start Date | End Date | Account A (Current) |
+|------|------------|----------|---------------------|
+| Goal 1 | 2025-01-01 | 2030-12-31 | $100,000 → $150,000 |
+| Goal 3 | 2026-01-01 | 2028-12-31 | ? |
+
+**Today**: 2024-12-24 (Goal 3 is in the future)
+
+**Calculating Goal 3's unallocated balance:**
+
+1. Since Goal 3 is in the future, use **current account value**: $150,000
+2. Goal 1's contributed value at current time:
+   - Initial: $50,000
+   - Growth: ($150,000 - $100,000) × 50% = $25,000
+   - **Contributed: $75,000**
+3. Unallocated Balance: $150,000 - $75,000 = **$75,000**
+
+### Backend Date Handling
+
+#### Allocation Dates in Database
+
+The `goals_allocation` table stores:
+- `allocation_date`: Legacy field (often NULL)
+- `start_date`: Backfilled from goal's `start_date`
+- `end_date`: Backfilled from goal's `due_date`
+
+#### Start Date Change Behavior
+
+When a goal's `start_date` is changed:
+1. All allocations for that goal are **reset** (values set to 0)
+2. User is shown a confirmation dialog before proceeding
+3. This is handled in `goals_service.rs`
+
+```rust
+// When start_date changes, reset all allocations
+if new_goal.start_date != existing_goal.start_date {
+    self.repository.reset_allocations_for_goal(&goal.id).await?;
+}
+```
+
+#### End Date Change Behavior
+
+When a goal's `due_date` is changed:
+1. All allocations' `end_date` is updated to match
+2. This maintains the time-aware overlap logic
+
+```rust
+// When due_date changes, update allocations' end_date
+if new_goal.due_date != existing_goal.due_date {
+    self.repository.update_allocations_end_date(&goal.id, &new_goal.due_date).await?;
+}
+```
+
+### Frontend Components
+
+#### EditAllocationsModal
+
+**Location**: `src/pages/goals/components/edit-allocations-modal.tsx`
+
+**Props**:
+- `goal: Goal` - Current goal (includes startDate, dueDate)
+- `allAllocations: GoalAllocation[]` - All allocations across all goals
+- `currentAccountValues: Map<string, number>` - Current account values
+
+**Features**:
+- Fetches historical valuations at multiple dates
+- Calculates time-aware unallocated balance
+- Shows dynamic update as user types
+- Validates against unallocated balance
+
+#### EditSingleAllocationModal
+
+**Location**: `src/pages/goals/components/edit-single-allocation-modal.tsx`
+
+**Props**:
+- `goal: { id, title, startDate, dueDate }` - Goal info
+- `allAllocations: GoalAllocation[]` - All allocations
+- `currentAccountValue: number` - Current account value
+
+**Features**:
+- Same time-aware logic as multi-allocation modal
+- Single account focus
+- Real-time unallocated balance display
+
+---
+
+## Completed Goals
+
+When a goal is marked as completed (`isAchieved: true`), special behavior is applied:
+
+### Allocation Release
+
+Completed goals' allocations are **NOT counted** in unallocated calculations for other goals:
+
+```typescript
+// In allocation calculations:
+if (isGoalAchieved(alloc.goalId)) {
+  return sum; // Skip - allocations are released
+}
+```
+
+This means:
+- **Percentage Released**: Other goals see the full percentage available (e.g., if Goal 1 had 100%, new goals see 100% available)
+- **Balance Available**: The contributed value is still tracked historically, but not subtracted from available balance for *new* goals
+
+### Historical Records
+
+Completed goals preserve their historical data:
+- **Chart**: Shows the final achievement record (read-only)
+- **Allocation History**: Displays the allocations as they were at completion
+- **No Editing**: Edit/delete buttons are hidden for completed goals
+
+### UI Changes
+
+When viewing a completed goal's detail page:
+
+| Element | Active Goal | Completed Goal |
+|---------|-------------|----------------|
+| Header | Normal | Shows ✅ "Completed" badge |
+| Description | Normal | "Goal achieved. Allocations released." |
+| "Edit Allocations" button | Visible | Hidden |
+| Allocations Section | "Current Allocations" with edit actions | "Allocation History" (read-only) |
+| Info Message | - | Green box: "Allocations have been released..." |
+
+### Technical Implementation
+
+**Files Modified:**
+- `edit-allocations-modal.tsx` - Skip completed goals in calculations
+- `edit-single-allocation-modal.tsx` - Skip completed goals in calculations
+- `goal-details-page.tsx` - Conditional UI for completed goals
+- `allocation-history-table.tsx` - Pass `allGoals` prop
+
+**New Props:**
+- `allGoals: Goal[]` - Passed to allocation modals/tables to check `isAchieved` status
+
+---
+
+## Related Documentation
+
+- [Goal Detail Page](./goal-details-page.md) - UI Components
+- [Projected Value Business Logic](./projected-value-business-logic.md) - Growth calculations

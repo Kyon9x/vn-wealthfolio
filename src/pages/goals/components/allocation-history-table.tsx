@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSettingsContext } from "@/lib/settings-provider";
-import { Account, GoalAllocation } from "@/lib/types";
+import { Account, Goal, GoalAllocation } from "@/lib/types";
 import { Icons } from "@wealthvn/ui";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,7 +24,11 @@ import { EditSingleAllocationModal } from "./edit-single-allocation-modal";
 
 interface AllocationHistoryTableProps {
   goalId: string;
+  goalStartDate?: string;
+  goalDueDate?: string;
   allocations: GoalAllocation[];
+  allAllocations?: GoalAllocation[]; // All allocations across all goals for time-aware calculation
+  allGoals?: Goal[]; // All goals for checking isAchieved status
   accounts: Map<string, Account>;
   currentAccountValues: Map<string, number>;
   onAllocationUpdated: (allocation: GoalAllocation) => Promise<void>;
@@ -35,7 +39,11 @@ interface AllocationHistoryTableProps {
 
 export function AllocationHistoryTable({
   goalId,
+  goalStartDate,
+  goalDueDate,
   allocations,
+  allAllocations = [],
+  allGoals = [],
   accounts,
   currentAccountValues,
   onAllocationUpdated,
@@ -174,10 +182,12 @@ export function AllocationHistoryTable({
         <EditSingleAllocationModal
           open={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
-          goal={{ id: goalId, title: "" }}
+          goal={{ id: goalId, title: "", startDate: goalStartDate, dueDate: goalDueDate }}
           account={accounts.get(currentAllocation.accountId) || { id: "", name: "" } as Account}
           currentAllocation={currentAllocation}
           currentAccountValue={currentAccountValues.get(currentAllocation.accountId) || 0}
+          allAllocations={allAllocations}
+          allGoals={allGoals}
           onSubmit={onAllocationUpdated}
         />
       )}

@@ -66,6 +66,11 @@
       "success": "Tạo mục tiêu thành công!",
       "description": "Bạn có muốn phân bổ tài khoản để tài trợ cho mục tiêu này không?",
       "addAllocations": "Thêm phân bổ"
+    },
+    "startDateChanged": {
+      "confirmTitle": "Đặt lại phân bổ?",
+      "confirmDescription": "Thay đổi ngày bắt đầu sẽ đặt lại tất cả các phân bổ hiện có cho mục tiêu này. Bạn sẽ cần cấu hình lại phân bổ sau thay đổi này. Bạn có chắc chắn muốn tiếp tục không?",
+      "confirmButton": "Có, Đặt lại phân bổ"
     }
   },
   "progress": {
@@ -254,18 +259,20 @@
     "cancel": "Hủy",
     "save": "Lưu",
     "saving": "Đang lưu...",
+    "loading": "Đang tải...",
     "errors": {
       "amountNegative": "Số tiền không được âm",
       "percentageRange": "Tỷ lệ phải từ 0 đến 100",
       "percentageExceeds": "Tỷ lệ không được vượt quá 100%",
-      "allocationRequired": "Phân bổ phải lớn hơn 0"
+      "allocationRequired": "Phân bổ phải lớn hơn 0",
+      "amountExceedsUnallocated": "Số tiền vượt quá số dư chưa phân bổ",
+      "percentageExceedsTotal": "Tổng tỷ lệ vượt quá 100%"
     },
     "saveFailed": "Không thể lưu phân bổ",
     "unknownError": "Lỗi không xác định",
     "summary": "Tóm tắt phân bổ",
     "reviewAllocation": "Điều chỉnh phân bổ cho tài khoản này",
     "currentBalance": "Số dư hiện tại",
-    "unallocatedGrowth": "Tăng trưởng chưa phân bổ",
     "amount": "Số tiền phân bổ"
   },
   "editAllocationsModal": {
@@ -282,12 +289,25 @@
     "allocatedPercent": "Tỷ lệ phân bổ",
     "summary": "Tóm tắt",
     "amount": "Số tiền",
-    "available": "Số dư khả dụng",
     "reviewAllocations": "Xem xét và điều chỉnh phân bổ danh mục đầu tư",
     "totalAllocated": "Tổng đã phân bổ",
     "accounts": "Tài khoản",
     "errors": {
       "amountNegative": "Số tiền không được âm"
     }
+  },
+  "completedGoal": {
+    "badge": "Hoàn thành",
+    "description": "Mục tiêu này đã đạt được. Tất cả phân bổ đã được giải phóng và có sẵn cho các mục tiêu khác.",
+    "allocationHistory": "Lịch sử phân bổ",
+    "historyDescription": "Bản ghi lịch sử phân bổ cho mục tiêu đã hoàn thành",
+    "allocationsReleased": "Các phân bổ đã được giải phóng và có sẵn cho các mục tiêu khác.",
+    "initialContribution": "Ban đầu",
+    "finalValue": "Giá trị cuối",
+    "growthPercent": "Tăng trưởng (%)",
+    "period": "Thời gian",
+    "reactivate": "Kích hoạt lại",
+    "markComplete": "Đánh dấu hoàn thành",
+    "complete": "Hoàn thành"
   }
 }

@@ -140,13 +140,21 @@ A reusable component for showing key-value pairs in the Overview Card.
 - Displays the list of accounts funding this goal.
 - Shows "Initial Contribution", "Allocated %", and calculated "Contributed Value".
 - Provides `Edit` and `Delete` actions for each allocation.
+- Passes `goalStartDate`, `goalDueDate`, and `allAllocations` to enable time-aware calculations.
 
 ### 4. EditAllocationsModal
 - A modal for adding or modifying allocations.
+- **Time-Aware Features**:
+  - Fetches historical account values at multiple dates
+  - Calculates **unallocated balance** using contributed values from other goals
+  - Only counts **overlapping goals** for percentage calculations
+  - Dynamic update of remaining unallocated as user types
 - Logic includes:
-  - Validating 100% allocation items cap.
-  - Checking available unallocated balance.
+  - Validating 100% allocation items cap (considering overlapping goals only)
+  - Checking available unallocated balance (time-aware calculation)
   - Prefilling existing values.
+
+> 📖 **See**: [Allocation Setting Plan](./allocation-setting-plan.md#time-aware-allocation-logic) for detailed implementation.
 
 ---
 
@@ -323,3 +331,4 @@ flowchart LR
 
 - [Goal Page Business Logic](./Goal-page-logic.md)
 - [Projected Value Business Logic](./projected-value-business-logic.md)
+- [Allocation Setting Plan](./allocation-setting-plan.md)

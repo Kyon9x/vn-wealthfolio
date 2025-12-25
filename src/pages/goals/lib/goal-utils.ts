@@ -260,3 +260,130 @@ export function getGoalStatus(goal: Goal, isOnTrack: boolean) {
     statusClass: "text-primary bg-primary/10",
   };
 }
+
+/**
+ * Check if two date ranges overlap
+ * Two ranges overlap if: rangeA.start < rangeB.end AND rangeA.end > rangeB.start
+ *
+ * @param startA - Start date of range A (ISO string or Date)
+ * @param endA - End date of range A (ISO string or Date)
+ * @param startB - Start date of range B (ISO string or Date)
+ * @param endB - End date of range B (ISO string or Date)
+ * @returns true if the ranges overlap, false otherwise
+ *
+ * @example
+ * // Goal 1: 2025-01-01 to 2030-12-31
+ * // Goal 2: 2031-01-01 to 2035-12-31
+ * doDateRangesOverlap('2025-01-01', '2030-12-31', '2031-01-01', '2035-12-31')
+ * // Returns: false (Goal 2 starts after Goal 1 ends)
+ *
+ * // Goal 1: 2025-01-01 to 2030-12-31
+ * // Goal 2: 2028-01-01 to 2032-12-31
+ * doDateRangesOverlap('2025-01-01', '2030-12-31', '2028-01-01', '2032-12-31')
+ * // Returns: true (they overlap from 2028 to 2030)
+ */
+export function doDateRangesOverlap(
+  startA: string | Date | undefined,
+  endA: string | Date | undefined,
+  startB: string | Date | undefined,
+  endB: string | Date | undefined,
+): boolean {
+  // If any date is missing, we can't determine overlap - assume they DON'T overlap
+  // This is conservative: if we don't know, don't count it
+  if (!startA || !endA || !startB || !endB) {
+    return false;
+  }
+
+  const dateStartA = typeof startA === 'string' ? new Date(startA) : startA;
+  const dateEndA = typeof endA === 'string' ? new Date(endA) : endA;
+  const dateStartB = typeof startB === 'string' ? new Date(startB) : startB;
+  const dateEndB = typeof endB === 'string' ? new Date(endB) : endB;
+
+  // Two ranges overlap if: A starts before B ends AND A ends after B starts
+  return dateStartA < dateEndB && dateEndA > dateStartB;
+}
+
+/**
+ * Calculate the contributed value of an allocation at a specific query date
+ *
+ * Formula: ContributedValue = InitialContribution + (AccountGrowth × AllocationPercent)
+ *
+ * Where:
+ * - AccountGrowth = AccountValue@QueryDate - AccountValue@AllocationStartDate
+ * - AllocationPercent is expressed as decimal (e.g., 0.5 for 50%)
+ *
+ * @param initialContribution - The initial contribution amount locked in at allocation start
+ * @param allocationPercentage - Allocation percentage (0-100)
+ * @param accountValueAtAllocationStart - Account value when this allocation started
+ * @param accountValueAtQueryDate - Account value at the query date
+ * @param allocationStartDate - When this allocation started
+ * @param queryDate - The date we're calculating contributed value for
+ * @returns The contributed value at the query date
+ *
+ * @example
+ * // Goal 1 started 2020-01-01 with 50% allocation on an account worth $100,000
+ * // Account is now worth $200,000 on 2025-01-01
+ * const contributed = calculateAllocationContributedValue(
+ *   50000,  // $50K initial contribution
+ *   50,     // 50% allocation
+ *   100000, // Account worth $100K at Goal 1 start
+ *   200000, // Account worth $200K at query date (2025-01-01)
+ *   new Date('2020-01-01'),
+ *   new Date('2025-01-01')
+ * );
+ * // Result: $50,000 + ($200,000 - $100,000) × 0.5 = $50,000 + $50,000 = $100,000
+ */
+export function calculateAllocationContributedValue(
+  initialContribution: number,
+  allocationPercentage: number,
+  accountValueAtAllocationStart: number,
+  accountValueAtQueryDate: number,
+  allocationStartDate: Date,
+  queryDate: Date,
+): number {
+  // If query date is before allocation started, contributed value is 0
+  if (queryDate < allocationStartDate) {
+    return 0;
+  }
+
+  // Account growth from allocation start to query date
+  const accountGrowth = accountValueAtQueryDate - accountValueAtAllocationStart;
+
+  // Allocated portion of the growth
+  const allocationDecimal = allocationPercentage / 100;
+  const allocatedGrowth = accountGrowth * allocationDecimal;
+
+  // Total contributed value = initial + growth
+  // If growth is negative, contributed value can be less than initial
+  return initialContribution + allocatedGrowth;
+}
+
+/**
+ * Calculate the unallocated balance for an account at a specific date
+ * considering all existing allocations from other goals
+ *
+ * @param accountValueAtQueryDate - Account value at the query date
+ * @param otherAllocationsContributedValues - Array of contributed values from other goals' allocations
+ * @returns The unallocated balance available for new allocations
+ */
+export function calculateUnallocatedBalance(
+  accountValueAtQueryDate: number,
+  otherAllocationsContributedValues: number[],
+): number {
+  const totalContributed = otherAllocationsContributedValues.reduce((sum, val) => sum + val, 0);
+  return Math.max(0, accountValueAtQueryDate - totalContributed);
+}
+
+/**
+ * Calculate the unallocated percentage for an account at a specific date
+ * This is useful for determining how much growth percentage is still available
+ *
+ * @param otherAllocationsPercentages - Array of allocation percentages from other goals
+ * @returns The unallocated percentage (0-100)
+ */
+export function calculateUnallocatedPercentage(
+  otherAllocationsPercentages: number[],
+): number {
+  const totalAllocated = otherAllocationsPercentages.reduce((sum, pct) => sum + pct, 0);
+  return Math.max(0, 100 - totalAllocated);
+}

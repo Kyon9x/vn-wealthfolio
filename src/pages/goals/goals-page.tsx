@@ -41,7 +41,7 @@ const GoalsPage = () => {
   const [visibleModal, setVisibleModal] = useState(false);
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
 
-  const { deleteGoalMutation, saveAllocationsMutation } = useGoalMutations();
+  const { deleteGoalMutation, saveAllocationsMutation, updateGoalMutation } = useGoalMutations();
 
   const handleAddGoal = () => {
     setSelectedGoal(null);
@@ -55,6 +55,13 @@ const GoalsPage = () => {
 
   const handleDeleteGoal = (goal: Goal) => {
     deleteGoalMutation.mutate(goal.id);
+  };
+
+  const handleCompleteGoal = (goal: Goal) => {
+    updateGoalMutation.mutate({
+      ...goal,
+      isAchieved: true,
+    });
   };
 
   const handleAddAllocation = (allocationData: GoalAllocation[]) => {
@@ -119,6 +126,7 @@ const GoalsPage = () => {
                       totalAccountCount={accounts?.length ?? 0}
                       onEdit={handleEditGoal}
                       onDelete={handleDeleteGoal}
+                      onComplete={handleCompleteGoal}
                     />
                   );
                 })}

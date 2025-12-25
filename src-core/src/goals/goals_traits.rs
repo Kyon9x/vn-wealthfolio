@@ -10,6 +10,8 @@ pub trait GoalRepositoryTrait: Send + Sync {
     async fn update_goal(&self, goal_update: Goal) -> Result<Goal>;
     async fn delete_goal(&self, goal_id_to_delete: String) -> Result<usize>;
     fn load_allocations_for_non_achieved_goals(&self) -> Result<Vec<GoalsAllocation>>;
+    /// Load ALL allocations including from completed goals (for display/chart purposes)
+    fn load_all_allocations(&self) -> Result<Vec<GoalsAllocation>>;
     async fn upsert_goal_allocations(&self, allocations: Vec<GoalsAllocation>) -> Result<usize>;
     fn get_allocations_for_account_on_date(
         &self,
@@ -24,6 +26,10 @@ pub trait GoalRepositoryTrait: Send + Sync {
     async fn insert_allocation_version(&self, version: AllocationVersion) -> Result<AllocationVersion>;
     async fn update_allocation(&self, allocation: GoalsAllocation) -> Result<GoalsAllocation>;
     async fn delete_allocation(&self, allocation_id: String) -> Result<usize>;
+    /// Reset all allocations for a specific goal to 0 and update their dates (used when goal start_date changes)
+    async fn reset_allocations_for_goal(&self, goal_id: String, new_start_date: Option<String>, new_end_date: Option<String>) -> Result<usize>;
+    /// Update end_date for all allocations of a goal (used when goal due_date changes)
+    async fn update_allocations_end_date_for_goal(&self, goal_id: String, new_end_date: String) -> Result<usize>;
 }
 
 /// Trait for goal service operations

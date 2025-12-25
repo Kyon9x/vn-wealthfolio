@@ -2,21 +2,21 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
-    AlertDialog,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Icons } from "@/components/ui/icons";
 
@@ -26,9 +26,10 @@ export interface GoalOperationsProps {
   goal: Goal;
   onEdit: (goal: Goal) => void | undefined;
   onDelete: (goal: Goal) => void | undefined;
+  onComplete?: (goal: Goal) => void | undefined;
 }
 
-export function GoalOperations({ goal, onEdit, onDelete }: GoalOperationsProps) {
+export function GoalOperations({ goal, onEdit, onDelete, onComplete }: GoalOperationsProps) {
   const { t } = useTranslation("goals");
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   //const navigation = useNavigation();
@@ -36,6 +37,12 @@ export function GoalOperations({ goal, onEdit, onDelete }: GoalOperationsProps) 
   const handleDelete = () => {
     onDelete(goal);
     setShowDeleteAlert(false);
+  };
+
+  const handleComplete = () => {
+    if (onComplete) {
+      onComplete(goal);
+    }
   };
 
   return (
@@ -54,6 +61,20 @@ export function GoalOperations({ goal, onEdit, onDelete }: GoalOperationsProps) 
           >
             {t("operations.edit")}
           </DropdownMenuItem>
+          {onComplete && !goal.isAchieved && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-green-600 focus:text-green-600 cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleComplete();
+                }}
+              >
+                {t("completedGoal.complete")}
+              </DropdownMenuItem>
+            </>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem
             className="text-destructive focus:text-destructive flex cursor-pointer items-center"

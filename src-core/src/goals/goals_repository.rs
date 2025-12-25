@@ -43,6 +43,14 @@ impl GoalRepository {
             .load::<GoalsAllocation>(&mut conn)?)
     }
 
+    /// Load ALL allocations including from completed goals (for display purposes)
+    pub fn load_all_allocations_impl(&self) -> Result<Vec<GoalsAllocation>> {
+        let mut conn = get_connection(&self.pool)?;
+        Ok(goals_allocation::table
+            .select(GoalsAllocation::as_select())
+            .load::<GoalsAllocation>(&mut conn)?)
+    }
+
     pub fn get_allocations_for_account_on_date(
         &self,
         account_id: &str,
@@ -160,6 +168,10 @@ impl GoalRepositoryTrait for GoalRepository {
         self.load_allocations_for_non_achieved_goals_impl()
     }
 
+    fn load_all_allocations(&self) -> Result<Vec<GoalsAllocation>> {
+        self.load_all_allocations_impl()
+    }
+
     fn get_allocations_for_account_on_date(
         &self,
         account_id: &str,
@@ -235,6 +247,37 @@ impl GoalRepositoryTrait for GoalRepository {
         self.writer
             .exec(move |conn: &mut SqliteConnection| -> Result<usize> {
                 Ok(diesel::delete(goals_allocation::table.find(allocation_id)).execute(conn)?)
+            })
+            .await
+    }
+
+    async fn reset_allocations_for_goal(&self, goal_id_to_reset: String, new_start_date: Option<String>, new_end_date: Option<String>) -> Result<usize> {
+        self.writer
+            .exec(move |conn: &mut SqliteConnection| -> Result<usize> {
+                Ok(diesel::update(
+                    goals_allocation::table.filter(goals_allocation::goal_id.eq(goal_id_to_reset))
+                )
+                .set((
+                    goals_allocation::init_amount.eq(0.0),
+                    goals_allocation::allocation_percentage.eq(0.0),
+                    goals_allocation::allocation_amount.eq(0.0),
+                    goals_allocation::percent_allocation.eq(0),
+                    goals_allocation::start_date.eq(new_start_date),
+                    goals_allocation::end_date.eq(new_end_date),
+                ))
+                .execute(conn)?)
+            })
+            .await
+    }
+
+    async fn update_allocations_end_date_for_goal(&self, goal_id_to_update: String, new_end_date: String) -> Result<usize> {
+        self.writer
+            .exec(move |conn: &mut SqliteConnection| -> Result<usize> {
+                Ok(diesel::update(
+                    goals_allocation::table.filter(goals_allocation::goal_id.eq(goal_id_to_update))
+                )
+                .set(goals_allocation::end_date.eq(Some(new_end_date)))
+                .execute(conn)?)
             })
             .await
     }
