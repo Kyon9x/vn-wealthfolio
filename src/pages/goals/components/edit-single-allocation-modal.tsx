@@ -256,10 +256,6 @@ export function EditSingleAllocationModal({
       newErrors.percentage = t("singleAllocationModal.errors.percentageRange");
     }
 
-    if (amount === 0 && percentage === 0) {
-       newErrors.amount = t("singleAllocationModal.errors.allocationRequired");
-    }
-
     // Check if amount exceeds unallocated balance
     if (amount > baseUnallocatedBalance) {
       newErrors.amount = t("singleAllocationModal.errors.amountExceedsUnallocated");
