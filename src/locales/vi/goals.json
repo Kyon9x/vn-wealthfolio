@@ -86,6 +86,7 @@
   "allocations": {
     "tableHeader": "Tài khoản",
     "totalRow": "Tổng cộng",
+    "unallocated": "Chưa phân bổ",
     "config": "Cấu hình phân bổ",
     "saveButton": "Lưu phân bổ",
     "toast": {
@@ -108,7 +109,7 @@
     "editGoal": "Chỉnh sửa",
     "back": "Quay lại",
     "chart": {
-      "growthProjection": "Dự phóng tăng trưởng",
+      "growthProjection": "Theo dõi mục tiêu",
       "noData": "Không có dữ liệu",
       "noDataDescription": "Thêm phân bổ để xem dự phóng tăng trưởng",
       "projectedGrowth": "Tăng trưởng dự phóng",
@@ -135,7 +136,7 @@
       "notSet": "Chưa thiết lập",
       "targetReturnRate": "Tỷ suất sinh lời mục tiêu",
       "timeRemaining": "Thời gian còn lại",
-      "projectedFutureValue": "Giá trị tương lai dự phóng"
+      "projectedFutureValue": "Giá trị dự phóng"
     },
     "allocations": {
       "title": "Phân bổ",

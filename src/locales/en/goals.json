@@ -86,6 +86,7 @@
   "allocations": {
     "tableHeader": "Account",
     "totalRow": "Total",
+    "unallocated": "Unallocated",
     "config": "Config Allocation",
     "saveButton": "Save Allocations",
     "toast": {
@@ -108,9 +109,9 @@
     "editGoal": "Edit Goal",
     "back": "Back",
     "chart": {
-      "growthProjection": "Growth Projection",
+      "growthProjection": "Goal Tracking",
       "noData": "No data available",
-      "noDataDescription": "Add allocations to see growth projection",
+      "noDataDescription": "Add allocations to see goal progress",
       "projectedGrowth": "Projected Growth",
       "actualValue": "Actual Value",
       "startLabel": "Start:{{date}}",
@@ -135,7 +136,7 @@
       "notSet": "Not set",
       "targetReturnRate": "Target Return Rate",
       "timeRemaining": "Time Remaining",
-      "projectedFutureValue": "Projected Future Value"
+      "projectedFutureValue": "Projected Value"
     },
     "allocations": {
       "title": "Allocations",

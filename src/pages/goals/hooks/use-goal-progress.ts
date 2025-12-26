@@ -6,29 +6,11 @@ import { QueryKeys } from "@/lib/query-keys";
 import type { AccountValuation, Goal, GoalAllocation } from "@/lib/types";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
-import { calculateProjectedValueByDate, extractDateString, getTodayString, isGoalOnTrack, parseGoalDate } from "../lib/goal-utils";
+import type { GoalProgress, GoalProgressResult, HistoryRequest } from "../lib/goal-types";
+import { calculateProjectedValueByDate, extractDateString, getTodayString, isGoalOnTrackByDate, parseGoalDate } from "../lib/goal-utils";
 
-// ============ TYPES ============
-export interface GoalProgress {
-  goalId: string;
-  currentValue: number;
-  targetAmount: number;
-  progress: number; // percentage (actual)
-  expectedProgress: number; // percentage (based on timeline)
-  isOnTrack: boolean;
-  projectedValue: number; // projected value at today's date
-  startValue: number; // initial principal (sum of initial contributions)
-}
-
-interface HistoryRequest {
-  accountId: string;
-  date: string;
-}
-
-interface GoalProgressResult {
-  goalProgressMap: Map<string, GoalProgress>;
-  allocationProgressMap: Map<string, number>;
-}
+// Re-export types for consumers
+export type { GoalProgress };
 
 // ============ HELPERS ============
 /**
@@ -139,20 +121,33 @@ function buildGoalProgressMap(
       ? Math.min((currentValue / goal.targetAmount) * 100, 100)
       : 0;
 
-    const monthlyInvestment = goal.monthlyInvestment ?? 0;
     const annualReturnRate = goal.targetReturnRate ?? 0;
 
+    // Calculate on-track status using the new convenience function
+    let isOnTrack = true;
     let projectedValue = 0;
-    if (goal.startDate) {
+
+    if (goal.startDate && goal.dueDate) {
       const goalStartDate = parseGoalDate(goal.startDate);
+      const goalDueDate = parseGoalDate(goal.dueDate);
       const today = new Date();
-      const dailyInvestment = monthlyInvestment / 30;
+
+      // Calculate projected value at today's date
       projectedValue = calculateProjectedValueByDate(
-        0,
-        dailyInvestment,
+        goal.targetAmount,
         annualReturnRate,
         goalStartDate,
+        goalDueDate,
         today
+      );
+
+      // Determine on-track status
+      isOnTrack = isGoalOnTrackByDate(
+        currentValue,
+        goal.targetAmount,
+        annualReturnRate,
+        goalStartDate,
+        goalDueDate
       );
     }
 
@@ -162,7 +157,7 @@ function buildGoalProgressMap(
       targetAmount: goal.targetAmount,
       progress,
       expectedProgress: 0,
-      isOnTrack: isGoalOnTrack(currentValue, projectedValue),
+      isOnTrack,
       projectedValue,
       startValue: totalInitialContribution,
     });

@@ -46,11 +46,6 @@ export function useNavigation() {
         href: "/dashboard",
       },
       {
-        icon: <Icons.Goal className="size-6" />,
-        title: t("navigation.goals"),
-        href: "/goals",
-      },
-      {
         icon: <Icons.Holdings className="size-6" />,
         title: t("navigation.holdings"),
         href: "/holdings",
@@ -69,6 +64,11 @@ export function useNavigation() {
         icon: <Icons.Activity className="size-6" />,
         title: t("navigation.activities"),
         href: "/activities",
+      },
+      {
+        icon: <Icons.Goal className="size-6" />,
+        title: t("navigation.goals"),
+        href: "/goals",
       },
     ],
     secondary: [
